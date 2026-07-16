@@ -1,0 +1,4 @@
+position,delta,gamma,vega,theta_per_day
+Protective put (long),-98,4.92,355,-87
+Collar short call,-140,-6.29,-453,129
+Oil call overlay (long),720,58.76,217,-159

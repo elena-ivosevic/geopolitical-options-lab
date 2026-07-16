@@ -1,0 +1,4 @@
+strategy,cost,cost_pct_of_portfolio,pnl_major_disruption,loss_reduction_vs_no_hedge,protection_efficiency
+Oil call overlay,5795,0.58,30330,42085,7.26
+Protective put,1631,0.16,-13386,-1631,-1.0
+Collar,-802,-0.08,-10953,802,

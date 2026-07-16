@@ -1,0 +1,4 @@
+rebalance_frequency,premium_received,final_stock_price,payoff,hedging_pnl
+Daily,6.77,138.08,57.18,-0.6
+Every 2 days,6.77,138.08,57.18,-0.69
+Weekly,6.77,138.08,57.18,-2.18
