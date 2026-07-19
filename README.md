@@ -16,16 +16,7 @@ protected a hypothetical wealth-management client portfolio through it.
 
 ## Selected results
 
-<!--
-  TODO: add one screenshot here before sharing this repo widely -- the Hedge Simulator tab
-  (showing the oil-call-overlay vs. protective-put comparison) or the Event Study tab's
-  volatility-transmission chart are the two strongest single images. Something like:
-
-  ![Hedge comparison](docs/hedge_comparison_screenshot.png)
-
-  A recruiter should be able to visually grasp the project's core finding within about ten
-  seconds of landing on this README, before reading a single paragraph below.
--->
+![Hedge comparison](docs/hedge_comparison_screenshot.png)
 
 | | |
 |---|---|
