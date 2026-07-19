@@ -1,4 +1,4 @@
-# From Hormuz to the Portfolio
+# Investment Hedging Model—Impacts of Geopolitical Tensions on Cross-Asset Allocations
 ### An Option-Implied Geopolitical Risk Dashboard
 
 [![tests](https://github.com/elena-ivosevic/geopolitical_options_lab/actions/workflows/tests.yml/badge.svg)](https://github.com/elena-ivosevic/geopolitical_options_lab/actions/workflows/tests.yml)
