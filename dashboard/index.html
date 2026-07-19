@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Investment Hedging Model &mdash;Impacts of Geopolitical Tensions on Cross-Asset Allocations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #000000;
+    --panel: #2F2F2F;
+    --panel-2: #3A3A3A;
+    --border: #4A4A4A;
+    --border-soft: #383838;
+    --text: #E3E6E9;
+    --muted: #939191;
+    --muted-2: #6E6C6C;
+    --amber: #FF5A22;
+    --amber-dim: #8A3313;
+    --teal: #3BCFCD;
+    --teal-dim: #1F6F6D;
+    --red: #FF5A22;
+    --green: #3BCFCD;
+    --mono: 'IBM Plex Mono', monospace;
+    --display: 'Space Grotesk', sans-serif;
+    --body: 'Inter', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  .mono, table, .value, .price-hero, .g-value { font-variant-numeric: tabular-nums; }
+  a { color: var(--teal); }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 26px 32px 20px;
+    background: linear-gradient(180deg, #0D0F12 0%, var(--bg) 100%);
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 8px;
+  }
+  h1 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 28px;
+    letter-spacing: -0.01em;
+  }
+  h1 span { color: var(--teal); }
+  .subtitle {
+    color: var(--muted);
+    font-size: 13.5px;
+    margin-top: 8px;
+    max-width: 740px;
+    line-height: 1.6;
+  }
+
+  nav {
+    display: flex;
+    gap: 4px;
+    padding: 0 32px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    overflow-x: auto;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  nav button {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 13.5px;
+    color: var(--muted);
+    background: none;
+    border: none;
+    padding: 16px 18px 13px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: color 0.15s ease;
+  }
+  nav button:hover { color: var(--text); }
+  nav button.active { color: var(--text); border-bottom-color: var(--amber); }
+
+  main { padding: 28px 32px 64px; max-width: 1320px; margin: 0 auto; }
+  .page { display: none; }
+  .page.active { display: block; animation: fade 0.25s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted-2);
+    margin: 28px 0 12px;
+  }
+  .section-label:first-child { margin-top: 0; }
+
+  .grid { display: grid; gap: 18px; }
+  .grid-2 { grid-template-columns: 1fr 1fr; }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 900px) {
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px 24px;
+    margin-bottom: 18px;
+  }
+  .panel h2 {
+    font-family: var(--display);
+    font-size: 15.5px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .panel .desc {
+    color: var(--muted);
+    font-size: 12.5px;
+    margin-bottom: 16px;
+    line-height: 1.6;
+    max-width: 780px;
+  }
+  .note {
+    font-size: 11.5px;
+    color: var(--muted);
+    background: var(--panel-2);
+    border-left: 2px solid var(--amber-dim);
+    padding: 10px 12px;
+    border-radius: 5px;
+    margin-top: 14px;
+    line-height: 1.6;
+  }
+  .note.real { border-left-color: var(--teal-dim); }
+
+  .stat-group-label {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted-2);
+    margin-bottom: 8px;
+  }
+  .stat-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; margin-bottom: 20px; }
+  .stat-row.cols-2 { grid-template-columns: repeat(2, 1fr); max-width: 460px; }
+  @media (max-width: 1100px) { .stat-row { grid-template-columns: repeat(4, 1fr); } }
+  @media (max-width: 640px) { .stat-row { grid-template-columns: repeat(2, 1fr); } }
+  .stat {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 14px 13px;
+  }
+  .stat .label { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .stat .value { font-family: var(--mono); font-size: 19px; font-weight: 600; margin-top: 6px; letter-spacing: -0.01em; }
+  .stat .sub { font-size: 11px; color: var(--muted-2); margin-top: 4px; font-family: var(--mono); }
+  .up { color: var(--green); }
+  .down { color: var(--red); }
+  .flat { color: var(--muted); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th {
+    text-align: right;
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted-2);
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  th:first-child, td.label-cell { text-align: left; }
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-soft);
+    font-family: var(--mono);
+    text-align: right;
+    white-space: nowrap;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.015); }
+  td.label-cell { font-family: var(--body); text-align: left; }
+
+  .timeline { position: relative; height: 148px; margin: 10px 0 6px; }
+  .timeline .track { position: absolute; left: 0; right: 0; top: 46px; height: 2px; background: var(--border); }
+  .tl-event {
+    position: absolute; top: 26px; width: 13px; height: 13px; border-radius: 50%;
+    transform: translateX(-50%); border: 2px solid var(--bg); cursor: default;
+  }
+  .tl-label {
+    position: absolute; top: 50px; transform: translateX(-50%);
+    font-family: var(--mono); font-size: 10.5px; color: var(--muted); text-align: center; width: 175px; line-height: 1.5;
+  }
+  .tl-label b { color: var(--text); display: block; font-size: 11px; margin-bottom: 3px; }
+
+  .tabs-inline { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tabs-inline button {
+    font-family: var(--mono); font-size: 11.5px; background: var(--panel-2);
+    border: 1px solid var(--border); color: var(--muted); padding: 7px 13px; border-radius: 6px; cursor: pointer;
+  }
+  .tabs-inline button.active { color: var(--bg); background: var(--amber); border-color: var(--amber); font-weight: 600; }
+
+  .calc-grid { display: grid; grid-template-columns: 320px 1fr; gap: 32px; }
+  @media (max-width: 900px) { .calc-grid { grid-template-columns: 1fr; } }
+  .field { margin-bottom: 15px; }
+  .field label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 6px; font-family: var(--mono); letter-spacing: 0.02em; }
+  .field input, .field select {
+    width: 100%; background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
+    padding: 9px 11px; border-radius: 6px; font-family: var(--mono); font-size: 13px;
+  }
+  .field input:focus, .field select:focus { outline: none; border-color: var(--teal); }
+  .preset-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; }
+  .preset-row button {
+    font-family: var(--mono); font-size: 11px; background: var(--panel-2); border: 1px solid var(--border);
+    color: var(--muted); padding: 6px 11px; border-radius: 5px; cursor: pointer;
+  }
+  .preset-row button:hover { color: var(--text); border-color: var(--teal-dim); }
+  .preset-row button.active { color: var(--bg); background: var(--teal); border-color: var(--teal); font-weight: 600; }
+
+  .price-hero-label { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+  .price-hero { font-family: var(--mono); font-size: 38px; font-weight: 600; margin: 8px 0 18px; letter-spacing: -0.01em; }
+
+  .greek-grid { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 10px; margin-bottom: 22px; }
+  @media (max-width: 700px) { .greek-grid { grid-template-columns: repeat(2,1fr); } }
+  .greek-box {
+    background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 8px; text-align: center;
+  }
+  .greek-box .g-label { font-size: 10px; color: var(--muted); font-family: var(--mono); }
+  .greek-box .g-value { font-family: var(--mono); font-size: 14.5px; font-weight: 600; margin-top: 5px; }
+
+  .chart-wrap { position: relative; height: 300px; }
+  .chart-wrap.tall { height: 380px; }
+  .chart-wrap.short { height: 240px; }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 22px 32px 44px;
+    color: var(--muted);
+    font-size: 11.5px;
+    max-width: 1320px;
+    margin: 0 auto;
+    line-height: 1.7;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Option-Implied Geopolitical Risk</div>
+  <h1>Investment Hedging Model <span>&mdash; Impacts of Geopolitical Tensions on Cross-Asset Allocations</span></h1>
+  <div class="subtitle">
+    Tracking how the Iran&ndash;Israel&ndash;U.S. conflict and Strait of Hormuz disruptions moved oil, airline,
+    consumer, healthcare, and broad-market risk &mdash; and testing whether Black-Scholes-based hedges would
+    have actually protected a client portfolio through it.
+  </div>
+</header>
+
+<nav id="tabNav"></nav>
+
+<main id="pages"></main>
+
+<footer>
+  Built across seven notebook phases: Black-Scholes engine &rarr; market data pipeline &rarr; implied volatility &rarr;
+  volatility surfaces &rarr; geopolitical event study &rarr; portfolio hedging &rarr; model-risk analysis.
+  Phases 5&ndash;7 (this dashboard) run on real historical price data and VIX/OVX volatility proxies.
+  Phases 2&ndash;4 (pricing-engine validation, market-data pipeline, implied-vol surfaces) used synthetic
+  data generated from the same Black-Scholes engine, since historical per-strike option chains require paid data
+  access this project didn't have. That substitution is intentional and documented throughout, not hidden.
+</footer>
+
+<script>
+const DATA = {"events": [{"Event_ID": "E1", "News_Date": "2026-02-28", "Market_T0": "2026-03-02", "Direction": "Escalation", "Event": "Joint U.S.-Israeli strikes begin the war with Iran"}, {"Event_ID": "E2", "News_Date": "2026-04-17", "Market_T0": "2026-04-17", "Direction": "De-escalation", "Event": "Iran announces that the Strait of Hormuz is open"}, {"Event_ID": "E3", "News_Date": "2026-06-15", "Market_T0": "2026-06-15", "Direction": "De-escalation", "Event": "Initial U.S.-Iran agreement extends the ceasefire and moves toward reopening Hormuz"}], "eventMetrics": [{"event_id": "E1", "event_type": "Escalation", "ticker": "USO", "price_move_pct": 28.96, "realized_vol_before_pct": 23.3, "realized_vol_after_pct": 94.0, "realized_vol_change_pp": 70.8, "vol_proxy": "OVX", "vol_proxy_before": 64.7, "vol_proxy_after": 100.5, "vol_proxy_change_pp": 35.8, "implied_move_approx_pct": 12.88, "actual_vs_implied_pct": 16.08}, {"event_id": "E1", "event_type": "Escalation", "ticker": "JETS", "price_move_pct": -9.61, "realized_vol_before_pct": 45.1, "realized_vol_after_pct": 38.1, "realized_vol_change_pp": -7.0, "vol_proxy": "VIX", "vol_proxy_before": 19.9, "vol_proxy_after": 25.5, "vol_proxy_change_pp": 5.6, "implied_move_approx_pct": 3.96, "actual_vs_implied_pct": 5.65}, {"event_id": "E1", "event_type": "Escalation", "ticker": "SPY", "price_move_pct": -0.6, "realized_vol_before_pct": 13.2, "realized_vol_after_pct": 15.5, "realized_vol_change_pp": 2.3, "vol_proxy": "VIX", "vol_proxy_before": 19.9, "vol_proxy_after": 25.5, "vol_proxy_change_pp": 5.6, "implied_move_approx_pct": 3.96, "actual_vs_implied_pct": -3.35}, {"event_id": "E1", "event_type": "Escalation", "ticker": "XLE", "price_move_pct": 2.12, "realized_vol_before_pct": 12.0, "realized_vol_after_pct": 9.2, "realized_vol_change_pp": -2.8, "vol_proxy": "OVX", "vol_proxy_before": 64.7, "vol_proxy_after": 100.5, "vol_proxy_change_pp": 35.8, "implied_move_approx_pct": 12.88, "actual_vs_implied_pct": -10.76}, {"event_id": "E1", "event_type": "Escalation", "ticker": "XLY", "price_move_pct": -0.35, "realized_vol_before_pct": 20.7, "realized_vol_after_pct": 21.3, "realized_vol_change_pp": 0.6, "vol_proxy": "VIX", "vol_proxy_before": 19.9, "vol_proxy_after": 25.5, "vol_proxy_change_pp": 5.6, "implied_move_approx_pct": 3.96, "actual_vs_implied_pct": -3.61}, {"event_id": "E1", "event_type": "Escalation", "ticker": "XLV", "price_move_pct": -2.7, "realized_vol_before_pct": 15.0, "realized_vol_after_pct": 18.7, "realized_vol_change_pp": 3.7, "vol_proxy": "VIX", "vol_proxy_before": 19.9, "vol_proxy_after": 25.5, "vol_proxy_change_pp": 5.6, "implied_move_approx_pct": 3.96, "actual_vs_implied_pct": -1.26}, {"event_id": "E1", "event_type": "Escalation", "ticker": "GLD", "price_move_pct": -1.82, "realized_vol_before_pct": 24.5, "realized_vol_after_pct": 37.9, "realized_vol_change_pp": 13.4, "vol_proxy": "VIX", "vol_proxy_before": 19.9, "vol_proxy_after": 25.5, "vol_proxy_change_pp": 5.6, "implied_move_approx_pct": 3.96, "actual_vs_implied_pct": -2.14}, {"event_id": "E2", "event_type": "De-escalation", "ticker": "USO", "price_move_pct": 6.07, "realized_vol_before_pct": 45.1, "realized_vol_after_pct": 47.6, "realized_vol_change_pp": 2.4, "vol_proxy": "OVX", "vol_proxy_before": 73.0, "vol_proxy_after": 75.8, "vol_proxy_change_pp": 2.8, "implied_move_approx_pct": 14.55, "actual_vs_implied_pct": -8.48}, {"event_id": "E2", "event_type": "De-escalation", "ticker": "JETS", "price_move_pct": 0.42, "realized_vol_before_pct": 36.3, "realized_vol_after_pct": 28.4, "realized_vol_change_pp": -7.9, "vol_proxy": "VIX", "vol_proxy_before": 17.9, "vol_proxy_after": 18.7, "vol_proxy_change_pp": 0.8, "implied_move_approx_pct": 3.57, "actual_vs_implied_pct": -3.15}, {"event_id": "E2", "event_type": "De-escalation", "ticker": "SPY", "price_move_pct": 5.07, "realized_vol_before_pct": 8.4, "realized_vol_after_pct": 11.7, "realized_vol_change_pp": 3.3, "vol_proxy": "VIX", "vol_proxy_before": 17.9, "vol_proxy_after": 18.7, "vol_proxy_change_pp": 0.8, "implied_move_approx_pct": 3.57, "actual_vs_implied_pct": 1.5}, {"event_id": "E2", "event_type": "De-escalation", "ticker": "XLE", "price_move_pct": -0.12, "realized_vol_before_pct": 20.5, "realized_vol_after_pct": 11.1, "realized_vol_change_pp": -9.4, "vol_proxy": "OVX", "vol_proxy_before": 73.0, "vol_proxy_after": 75.8, "vol_proxy_change_pp": 2.8, "implied_move_approx_pct": 14.55, "actual_vs_implied_pct": -14.43}, {"event_id": "E2", "event_type": "De-escalation", "ticker": "XLY", "price_move_pct": 5.14, "realized_vol_before_pct": 16.7, "realized_vol_after_pct": 11.3, "realized_vol_change_pp": -5.5, "vol_proxy": "VIX", "vol_proxy_before": 17.9, "vol_proxy_after": 18.7, "vol_proxy_change_pp": 0.8, "implied_move_approx_pct": 3.57, "actual_vs_implied_pct": 1.56}, {"event_id": "E2", "event_type": "De-escalation", "ticker": "XLV", "price_move_pct": -2.12, "realized_vol_before_pct": 13.4, "realized_vol_after_pct": 11.4, "realized_vol_change_pp": -2.0, "vol_proxy": "VIX", "vol_proxy_before": 17.9, "vol_proxy_after": 18.7, "vol_proxy_change_pp": 0.8, "implied_move_approx_pct": 3.57, "actual_vs_implied_pct": -1.45}, {"event_id": "E2", "event_type": "De-escalation", "ticker": "GLD", "price_move_pct": -0.89, "realized_vol_before_pct": 19.7, "realized_vol_after_pct": 25.4, "realized_vol_change_pp": 5.8, "vol_proxy": "VIX", "vol_proxy_before": 17.9, "vol_proxy_after": 18.7, "vol_proxy_change_pp": 0.8, "implied_move_approx_pct": 3.57, "actual_vs_implied_pct": -2.69}, {"event_id": "E3", "event_type": "De-escalation", "ticker": "USO", "price_move_pct": -17.68, "realized_vol_before_pct": 46.0, "realized_vol_after_pct": 31.4, "realized_vol_change_pp": -14.6, "vol_proxy": "OVX", "vol_proxy_before": 54.1, "vol_proxy_after": 46.6, "vol_proxy_change_pp": -7.5, "implied_move_approx_pct": 10.78, "actual_vs_implied_pct": 6.9}, {"event_id": "E3", "event_type": "De-escalation", "ticker": "JETS", "price_move_pct": 12.56, "realized_vol_before_pct": 65.0, "realized_vol_after_pct": 21.3, "realized_vol_change_pp": -43.8, "vol_proxy": "VIX", "vol_proxy_before": 17.7, "vol_proxy_after": 17.3, "vol_proxy_change_pp": -0.4, "implied_move_approx_pct": 3.52, "actual_vs_implied_pct": 9.04}, {"event_id": "E3", "event_type": "De-escalation", "ticker": "SPY", "price_move_pct": -0.51, "realized_vol_before_pct": 19.0, "realized_vol_after_pct": 15.7, "realized_vol_change_pp": -3.3, "vol_proxy": "VIX", "vol_proxy_before": 17.7, "vol_proxy_after": 17.3, "vol_proxy_change_pp": -0.4, "implied_move_approx_pct": 3.52, "actual_vs_implied_pct": -3.01}, {"event_id": "E3", "event_type": "De-escalation", "ticker": "XLE", "price_move_pct": -5.96, "realized_vol_before_pct": 25.8, "realized_vol_after_pct": 19.8, "realized_vol_change_pp": -5.9, "vol_proxy": "OVX", "vol_proxy_before": 54.1, "vol_proxy_after": 46.6, "vol_proxy_change_pp": -7.5, "implied_move_approx_pct": 10.78, "actual_vs_implied_pct": -4.82}, {"event_id": "E3", "event_type": "De-escalation", "ticker": "XLY", "price_move_pct": -1.22, "realized_vol_before_pct": 25.5, "realized_vol_after_pct": 24.3, "realized_vol_change_pp": -1.1, "vol_proxy": "VIX", "vol_proxy_before": 17.7, "vol_proxy_after": 17.3, "vol_proxy_change_pp": -0.4, "implied_move_approx_pct": 3.52, "actual_vs_implied_pct": -2.31}, {"event_id": "E3", "event_type": "De-escalation", "ticker": "XLV", "price_move_pct": 0.13, "realized_vol_before_pct": 14.9, "realized_vol_after_pct": 18.9, "realized_vol_change_pp": 4.0, "vol_proxy": "VIX", "vol_proxy_before": 17.7, "vol_proxy_after": 17.3, "vol_proxy_change_pp": -0.4, "implied_move_approx_pct": 3.52, "actual_vs_implied_pct": -3.39}, {"event_id": "E3", "event_type": "De-escalation", "ticker": "GLD", "price_move_pct": -5.02, "realized_vol_before_pct": 42.7, "realized_vol_after_pct": 17.1, "realized_vol_change_pp": -25.7, "vol_proxy": "VIX", "vol_proxy_before": 17.7, "vol_proxy_after": 17.3, "vol_proxy_change_pp": -0.4, "implied_move_approx_pct": 3.52, "actual_vs_implied_pct": 1.5}], "correlation": [{"event_id": "E1", "pair": "USO-JETS", "corr_before": -0.43, "corr_after": -0.85, "corr_change": -0.42}, {"event_id": "E1", "pair": "USO-SPY", "corr_before": -0.16, "corr_after": -0.89, "corr_change": -0.73}, {"event_id": "E1", "pair": "USO-XLE", "corr_before": 0.87, "corr_after": 0.18, "corr_change": -0.69}, {"event_id": "E1", "pair": "USO-XLY", "corr_before": 0.03, "corr_after": -0.74, "corr_change": -0.77}, {"event_id": "E1", "pair": "USO-XLV", "corr_before": 0.26, "corr_after": -0.76, "corr_change": -1.02}, {"event_id": "E1", "pair": "USO-GLD", "corr_before": 0.35, "corr_after": -0.02, "corr_change": -0.37}, {"event_id": "E2", "pair": "USO-JETS", "corr_before": -0.79, "corr_after": -0.68, "corr_change": 0.1099999999999999}, {"event_id": "E2", "pair": "USO-SPY", "corr_before": -0.71, "corr_after": -0.73, "corr_change": -0.02}, {"event_id": "E2", "pair": "USO-XLE", "corr_before": 0.73, "corr_after": 0.67, "corr_change": -0.0599999999999999}, {"event_id": "E2", "pair": "USO-XLY", "corr_before": -0.72, "corr_after": -0.72, "corr_change": 0.0}, {"event_id": "E2", "pair": "USO-XLV", "corr_before": -0.62, "corr_after": -0.34, "corr_change": 0.2799999999999999}, {"event_id": "E2", "pair": "USO-GLD", "corr_before": -0.63, "corr_after": -0.73, "corr_change": -0.0999999999999999}, {"event_id": "E3", "pair": "USO-JETS", "corr_before": -0.78, "corr_after": -0.23, "corr_change": 0.55}, {"event_id": "E3", "pair": "USO-SPY", "corr_before": -0.17, "corr_after": 0.5, "corr_change": 0.67}, {"event_id": "E3", "pair": "USO-XLE", "corr_before": 0.84, "corr_after": 0.23, "corr_change": -0.61}, {"event_id": "E3", "pair": "USO-XLY", "corr_before": -0.63, "corr_after": -0.05, "corr_change": 0.58}, {"event_id": "E3", "pair": "USO-XLV", "corr_before": -0.65, "corr_after": -0.19, "corr_change": 0.46}, {"event_id": "E3", "pair": "USO-GLD", "corr_before": -0.35, "corr_after": 0.18, "corr_change": 0.53}], "scenarioResults": [{"scenario": "A_mild_escalation", "strategy": "No hedge", "cost": 0, "pnl": -4105, "portfolio_value": 995895, "return_pct": -0.41}, {"scenario": "A_mild_escalation", "strategy": "Protective put", "cost": 1631, "pnl": -5736, "portfolio_value": 994264, "return_pct": -0.57}, {"scenario": "A_mild_escalation", "strategy": "Collar", "cost": -802, "pnl": -3303, "portfolio_value": 996697, "return_pct": -0.33}, {"scenario": "A_mild_escalation", "strategy": "Oil call overlay", "cost": 5795, "pnl": 340, "portfolio_value": 1000340, "return_pct": 0.03}, {"scenario": "B_major_disruption", "strategy": "No hedge", "cost": 0, "pnl": -11755, "portfolio_value": 988245, "return_pct": -1.18}, {"scenario": "B_major_disruption", "strategy": "Protective put", "cost": 1631, "pnl": -13386, "portfolio_value": 986614, "return_pct": -1.34}, {"scenario": "B_major_disruption", "strategy": "Collar", "cost": -802, "pnl": -10953, "portfolio_value": 989047, "return_pct": -1.1}, {"scenario": "B_major_disruption", "strategy": "Oil call overlay", "cost": 5795, "pnl": 30330, "portfolio_value": 1030330, "return_pct": 3.03}, {"scenario": "C_deescalation", "strategy": "No hedge", "cost": 0, "pnl": 1875, "portfolio_value": 1001875, "return_pct": 0.19}, {"scenario": "C_deescalation", "strategy": "Protective put", "cost": 1631, "pnl": 244, "portfolio_value": 1000244, "return_pct": 0.02}, {"scenario": "C_deescalation", "strategy": "Collar", "cost": -802, "pnl": 2677, "portfolio_value": 1002677, "return_pct": 0.27}, {"scenario": "C_deescalation", "strategy": "Oil call overlay", "cost": 5795, "pnl": -3920, "portfolio_value": 996080, "return_pct": -0.39}], "protectionEfficiency": [{"strategy": "Oil call overlay", "cost": 5795, "cost_pct_of_portfolio": 0.58, "pnl_major_disruption": 30330, "loss_reduction_vs_no_hedge": 42085, "protection_efficiency": 7.26}, {"strategy": "Protective put", "cost": 1631, "cost_pct_of_portfolio": 0.16, "pnl_major_disruption": -13386, "loss_reduction_vs_no_hedge": -1631, "protection_efficiency": -1.0}, {"strategy": "Collar", "cost": -802, "cost_pct_of_portfolio": -0.08, "pnl_major_disruption": -10953, "loss_reduction_vs_no_hedge": 802, "protection_efficiency": NaN}], "hedgeGreeks": [{"position": "Protective put (long)", "delta": -98, "gamma": 4.92, "vega": 355, "theta_per_day": -87}, {"position": "Collar short call", "delta": -140, "gamma": -6.29, "vega": -453, "theta_per_day": 129}, {"position": "Oil call overlay (long)", "delta": 720, "gamma": 58.76, "vega": 217, "theta_per_day": -159}], "pricingError": [{"event_id": "E1", "event_type": "Escalation", "ticker": "USO", "price_move_pct": 28.96, "implied_move_approx_pct": 12.88, "pricing_error_pp": 16.08, "pct_error": 55.52486187845304}, {"event_id": "E1", "event_type": "Escalation", "ticker": "JETS", "price_move_pct": -9.61, "implied_move_approx_pct": 3.96, "pricing_error_pp": 5.65, "pct_error": 58.79292403746098}, {"event_id": "E1", "event_type": "Escalation", "ticker": "SPY", "price_move_pct": -0.6, "implied_move_approx_pct": 3.96, "pricing_error_pp": -3.36, "pct_error": -560.0}, {"event_id": "E1", "event_type": "Escalation", "ticker": "XLE", "price_move_pct": 2.12, "implied_move_approx_pct": 12.88, "pricing_error_pp": -10.760000000000002, "pct_error": -507.5471698113208}, {"event_id": "E1", "event_type": "Escalation", "ticker": "XLY", "price_move_pct": -0.35, "implied_move_approx_pct": 3.96, "pricing_error_pp": -3.61, "pct_error": -1031.4285714285716}, {"event_id": "E1", "event_type": "Escalation", "ticker": "XLV", "price_move_pct": -2.7, "implied_move_approx_pct": 3.96, "pricing_error_pp": -1.2599999999999998, "pct_error": -46.66666666666666}, {"event_id": "E1", "event_type": "Escalation", "ticker": "GLD", "price_move_pct": -1.82, "implied_move_approx_pct": 3.96, "pricing_error_pp": -2.14, "pct_error": -117.58241758241756}, {"event_id": "E2", "event_type": "De-escalation", "ticker": "USO", "price_move_pct": 6.07, "implied_move_approx_pct": 14.55, "pricing_error_pp": -8.48, "pct_error": -139.7034596375618}, {"event_id": "E2", "event_type": "De-escalation", "ticker": "JETS", "price_move_pct": 0.42, "implied_move_approx_pct": 3.57, "pricing_error_pp": -3.15, "pct_error": -750.0}, {"event_id": "E2", "event_type": "De-escalation", "ticker": "SPY", "price_move_pct": 5.07, "implied_move_approx_pct": 3.57, "pricing_error_pp": 1.5000000000000004, "pct_error": 29.58579881656805}, {"event_id": "E2", "event_type": "De-escalation", "ticker": "XLE", "price_move_pct": -0.12, "implied_move_approx_pct": 14.55, "pricing_error_pp": -14.43, "pct_error": -12025.000000000002}, {"event_id": "E2", "event_type": "De-escalation", "ticker": "XLY", "price_move_pct": 5.14, "implied_move_approx_pct": 3.57, "pricing_error_pp": 1.5699999999999998, "pct_error": 30.54474708171206}, {"event_id": "E2", "event_type": "De-escalation", "ticker": "XLV", "price_move_pct": -2.12, "implied_move_approx_pct": 3.57, "pricing_error_pp": -1.4499999999999995, "pct_error": -68.39622641509432}, {"event_id": "E2", "event_type": "De-escalation", "ticker": "GLD", "price_move_pct": -0.89, "implied_move_approx_pct": 3.57, "pricing_error_pp": -2.68, "pct_error": -301.123595505618}, {"event_id": "E3", "event_type": "De-escalation", "ticker": "USO", "price_move_pct": -17.68, "implied_move_approx_pct": 10.78, "pricing_error_pp": 6.9, "pct_error": 39.02714932126697}, {"event_id": "E3", "event_type": "De-escalation", "ticker": "JETS", "price_move_pct": 12.56, "implied_move_approx_pct": 3.52, "pricing_error_pp": 9.04, "pct_error": 71.97452229299364}, {"event_id": "E3", "event_type": "De-escalation", "ticker": "SPY", "price_move_pct": -0.51, "implied_move_approx_pct": 3.52, "pricing_error_pp": -3.01, "pct_error": -590.1960784313725}, {"event_id": "E3", "event_type": "De-escalation", "ticker": "XLE", "price_move_pct": -5.96, "implied_move_approx_pct": 10.78, "pricing_error_pp": -4.819999999999999, "pct_error": -80.8724832214765}, {"event_id": "E3", "event_type": "De-escalation", "ticker": "XLY", "price_move_pct": -1.22, "implied_move_approx_pct": 3.52, "pricing_error_pp": -2.3, "pct_error": -188.5245901639344}, {"event_id": "E3", "event_type": "De-escalation", "ticker": "XLV", "price_move_pct": 0.13, "implied_move_approx_pct": 3.52, "pricing_error_pp": -3.39, "pct_error": -2607.692307692308}, {"event_id": "E3", "event_type": "De-escalation", "ticker": "GLD", "price_move_pct": -5.02, "implied_move_approx_pct": 3.52, "pricing_error_pp": 1.4999999999999996, "pct_error": 29.8804780876494}], "deltaHedge": [{"rebalance_frequency": "Daily", "premium_received": 6.77, "final_stock_price": 138.08, "payoff": 57.18, "hedging_pnl": -0.6}, {"rebalance_frequency": "Every 2 days", "premium_received": 6.77, "final_stock_price": 138.08, "payoff": 57.18, "hedging_pnl": -0.69}, {"rebalance_frequency": "Weekly", "premium_received": 6.77, "final_stock_price": 138.08, "payoff": 57.18, "hedging_pnl": -2.18}], "constVol": [{"vol_source": "Pre-event OVX (available at hedge inception)", "sigma": 0.5904999923706055, "call_price": 6.77, "sigma_pct": 59.0, "pct_diff_vs_pre_event": 0.0}, {"vol_source": "Post-event OVX (hindsight)", "sigma": 0.9879000091552734, "call_price": 11.14, "sigma_pct": 98.8, "pct_diff_vs_pre_event": 64.5}, {"vol_source": "Realized vol from the actual path (hindsight, model-free)", "sigma": 0.7066908314314849, "call_price": 8.05, "sigma_pct": 70.7, "pct_diff_vs_pre_event": 18.9}], "priceSeries": {"USO": [{"d": "2026-02-09", "c": 78.02}, {"d": "2026-02-10", "c": 78.03}, {"d": "2026-02-11", "c": 78.89}, {"d": "2026-02-12", "c": 76.38}, {"d": "2026-02-13", "c": 76.22}, {"d": "2026-02-17", "c": 75.73}, {"d": "2026-02-18", "c": 79.4}, {"d": "2026-02-19", "c": 81.19}, {"d": "2026-02-20", "c": 80.85}, {"d": "2026-02-23", "c": 80.9}, {"d": "2026-02-24", "c": 80.76}, {"d": "2026-02-25", "c": 79.73}, {"d": "2026-02-26", "c": 79.77}, {"d": "2026-02-27", "c": 81.95}, {"d": "2026-03-02", "c": 87.19}, {"d": "2026-03-03", "c": 90.2}, {"d": "2026-03-04", "c": 91.56}, {"d": "2026-03-05", "c": 96.31}, {"d": "2026-03-06", "c": 108.77}, {"d": "2026-03-09", "c": 104.33}, {"d": "2026-03-10", "c": 105.86}, {"d": "2026-03-11", "c": 108.05}, {"d": "2026-03-12", "c": 118.39}, {"d": "2026-03-13", "c": 119.89}, {"d": "2026-03-16", "c": 115.03}, {"d": "2026-03-17", "c": 118.84}, {"d": "2026-03-18", "c": 121.67}, {"d": "2026-03-19", "c": 117.36}, {"d": "2026-03-20", "c": 121.43}, {"d": "2026-03-23", "c": 110.56}, {"d": "2026-03-24", "c": 114.54}, {"d": "2026-03-25", "c": 113.39}, {"d": "2026-03-26", "c": 117.26}, {"d": "2026-03-27", "c": 124.2}, {"d": "2026-03-30", "c": 129.83}, {"d": "2026-03-31", "c": 127.25}, {"d": "2026-04-01", "c": 124.09}, {"d": "2026-04-02", "c": 137.92}, {"d": "2026-04-06", "c": 138.94}, {"d": "2026-04-07", "c": 138.08}, {"d": "2026-04-08", "c": 124.58}, {"d": "2026-04-09", "c": 126.96}, {"d": "2026-04-10", "c": 124.82}, {"d": "2026-04-13", "c": 128.47}, {"d": "2026-04-14", "c": 123.85}, {"d": "2026-04-15", "c": 122.59}, {"d": "2026-04-16", "c": 125.84}, {"d": "2026-04-17", "c": 116.04}, {"d": "2026-04-20", "c": 121.32}, {"d": "2026-04-21", "c": 128.25}, {"d": "2026-04-22", "c": 129.4}, {"d": "2026-04-23", "c": 134.72}, {"d": "2026-04-24", "c": 132.4}, {"d": "2026-04-27", "c": 134.72}, {"d": "2026-04-28", "c": 139.6}, {"d": "2026-04-29", "c": 150.63}, {"d": "2026-04-30", "c": 147.09}, {"d": "2026-05-01", "c": 142.8}, {"d": "2026-05-04", "c": 147.61}, {"d": "2026-05-05", "c": 144.17}, {"d": "2026-05-06", "c": 133.95}, {"d": "2026-05-07", "c": 134.97}, {"d": "2026-05-08", "c": 133.59}, {"d": "2026-05-11", "c": 138.66}, {"d": "2026-05-12", "c": 144.3}, {"d": "2026-05-13", "c": 142.04}, {"d": "2026-05-14", "c": 143.0}, {"d": "2026-05-15", "c": 148.23}, {"d": "2026-05-18", "c": 149.29}, {"d": "2026-05-19", "c": 152.96}, {"d": "2026-05-20", "c": 144.27}, {"d": "2026-05-21", "c": 142.54}, {"d": "2026-05-22", "c": 140.92}, {"d": "2026-05-26", "c": 137.0}, {"d": "2026-05-27", "c": 131.03}, {"d": "2026-05-28", "c": 130.78}, {"d": "2026-05-29", "c": 129.09}, {"d": "2026-06-01", "c": 135.5}, {"d": "2026-06-02", "c": 137.27}, {"d": "2026-06-03", "c": 140.86}, {"d": "2026-06-04", "c": 136.74}, {"d": "2026-06-05", "c": 133.02}, {"d": "2026-06-08", "c": 135.15}, {"d": "2026-06-09", "c": 131.3}, {"d": "2026-06-10", "c": 134.3}, {"d": "2026-06-11", "c": 128.83}, {"d": "2026-06-12", "c": 125.43}, {"d": "2026-06-15", "c": 121.21}, {"d": "2026-06-16", "c": 115.47}, {"d": "2026-06-17", "c": 114.23}, {"d": "2026-06-18", "c": 114.87}, {"d": "2026-06-22", "c": 112.69}, {"d": "2026-06-23", "c": 111.26}, {"d": "2026-06-24", "c": 106.29}, {"d": "2026-06-25", "c": 109.31}, {"d": "2026-06-26", "c": 105.48}, {"d": "2026-06-29", "c": 107.08}, {"d": "2026-06-30", "c": 106.44}, {"d": "2026-07-01", "c": 103.27}, {"d": "2026-07-02", "c": 103.98}], "JETS": [{"d": "2026-02-09", "c": 30.99}, {"d": "2026-02-10", "c": 30.88}, {"d": "2026-02-11", "c": 29.87}, {"d": "2026-02-12", "c": 29.33}, {"d": "2026-02-13", "c": 29.36}, {"d": "2026-02-17", "c": 30.17}, {"d": "2026-02-18", "c": 30.3}, {"d": "2026-02-19", "c": 29.1}, {"d": "2026-02-20", "c": 29.47}, {"d": "2026-02-23", "c": 28.51}, {"d": "2026-02-24", "c": 28.82}, {"d": "2026-02-25", "c": 28.91}, {"d": "2026-02-26", "c": 29.63}, {"d": "2026-02-27", "c": 28.45}, {"d": "2026-03-02", "c": 27.7}, {"d": "2026-03-03", "c": 27.43}, {"d": "2026-03-04", "c": 27.32}, {"d": "2026-03-05", "c": 26.08}, {"d": "2026-03-06", "c": 25.35}, {"d": "2026-03-09", "c": 25.77}, {"d": "2026-03-10", "c": 25.35}, {"d": "2026-03-11", "c": 25.22}, {"d": "2026-03-12", "c": 24.22}, {"d": "2026-03-13", "c": 24.05}, {"d": "2026-03-16", "c": 24.58}, {"d": "2026-03-17", "c": 25.07}, {"d": "2026-03-18", "c": 24.59}, {"d": "2026-03-19", "c": 24.69}, {"d": "2026-03-20", "c": 24.09}, {"d": "2026-03-23", "c": 24.93}, {"d": "2026-03-24", "c": 24.83}, {"d": "2026-03-25", "c": 25.3}, {"d": "2026-03-26", "c": 25.01}, {"d": "2026-03-27", "c": 24.13}, {"d": "2026-03-30", "c": 23.64}, {"d": "2026-03-31", "c": 24.63}, {"d": "2026-04-01", "c": 25.27}, {"d": "2026-04-02", "c": 24.93}, {"d": "2026-04-06", "c": 24.99}, {"d": "2026-04-07", "c": 24.79}, {"d": "2026-04-08", "c": 26.19}, {"d": "2026-04-09", "c": 26.11}, {"d": "2026-04-10", "c": 25.89}, {"d": "2026-04-13", "c": 25.81}, {"d": "2026-04-14", "c": 26.95}, {"d": "2026-04-15", "c": 27.02}, {"d": "2026-04-16", "c": 26.63}, {"d": "2026-04-17", "c": 27.92}, {"d": "2026-04-20", "c": 27.55}, {"d": "2026-04-21", "c": 26.75}, {"d": "2026-04-22", "c": 25.88}, {"d": "2026-04-23", "c": 25.72}, {"d": "2026-04-24", "c": 26.0}, {"d": "2026-04-27", "c": 25.53}, {"d": "2026-04-28", "c": 25.28}, {"d": "2026-04-29", "c": 24.93}, {"d": "2026-04-30", "c": 25.42}, {"d": "2026-05-01", "c": 25.76}, {"d": "2026-05-04", "c": 25.42}, {"d": "2026-05-05", "c": 26.06}, {"d": "2026-05-06", "c": 27.24}, {"d": "2026-05-07", "c": 27.59}, {"d": "2026-05-08", "c": 27.48}, {"d": "2026-05-11", "c": 26.61}, {"d": "2026-05-12", "c": 26.27}, {"d": "2026-05-13", "c": 26.13}, {"d": "2026-05-14", "c": 26.22}, {"d": "2026-05-15", "c": 25.56}, {"d": "2026-05-18", "c": 25.55}, {"d": "2026-05-19", "c": 24.81}, {"d": "2026-05-20", "c": 26.44}, {"d": "2026-05-21", "c": 27.0}, {"d": "2026-05-22", "c": 27.13}, {"d": "2026-05-26", "c": 28.26}, {"d": "2026-05-27", "c": 29.08}, {"d": "2026-05-28", "c": 29.14}, {"d": "2026-05-29", "c": 29.32}, {"d": "2026-06-01", "c": 28.93}, {"d": "2026-06-02", "c": 28.5}, {"d": "2026-06-03", "c": 27.83}, {"d": "2026-06-04", "c": 28.0}, {"d": "2026-06-05", "c": 27.94}, {"d": "2026-06-08", "c": 27.7}, {"d": "2026-06-09", "c": 28.56}, {"d": "2026-06-10", "c": 27.25}, {"d": "2026-06-11", "c": 28.97}, {"d": "2026-06-12", "c": 29.53}, {"d": "2026-06-15", "c": 30.46}, {"d": "2026-06-16", "c": 30.63}, {"d": "2026-06-17", "c": 30.25}, {"d": "2026-06-18", "c": 31.0}, {"d": "2026-06-22", "c": 30.98}, {"d": "2026-06-23", "c": 31.18}, {"d": "2026-06-24", "c": 32.48}, {"d": "2026-06-25", "c": 32.98}, {"d": "2026-06-26", "c": 33.28}, {"d": "2026-06-29", "c": 33.08}, {"d": "2026-06-30", "c": 33.22}, {"d": "2026-07-01", "c": 33.23}, {"d": "2026-07-02", "c": 33.2}], "SPY": [{"d": "2026-02-09", "c": 690.28}, {"d": "2026-02-10", "c": 688.46}, {"d": "2026-02-11", "c": 688.3}, {"d": "2026-02-12", "c": 677.67}, {"d": "2026-02-13", "c": 678.15}, {"d": "2026-02-17", "c": 679.24}, {"d": "2026-02-18", "c": 682.66}, {"d": "2026-02-19", "c": 680.86}, {"d": "2026-02-20", "c": 685.79}, {"d": "2026-02-23", "c": 678.78}, {"d": "2026-02-24", "c": 683.72}, {"d": "2026-02-25", "c": 689.49}, {"d": "2026-02-26", "c": 685.66}, {"d": "2026-02-27", "c": 682.36}, {"d": "2026-03-02", "c": 682.75}, {"d": "2026-03-03", "c": 676.73}, {"d": "2026-03-04", "c": 681.51}, {"d": "2026-03-05", "c": 677.71}, {"d": "2026-03-06", "c": 668.83}, {"d": "2026-03-09", "c": 674.68}, {"d": "2026-03-10", "c": 673.6}, {"d": "2026-03-11", "c": 672.75}, {"d": "2026-03-12", "c": 662.54}, {"d": "2026-03-13", "c": 658.79}, {"d": "2026-03-16", "c": 665.49}, {"d": "2026-03-17", "c": 667.24}, {"d": "2026-03-18", "c": 657.93}, {"d": "2026-03-19", "c": 656.31}, {"d": "2026-03-20", "c": 646.9}, {"d": "2026-03-23", "c": 653.7}, {"d": "2026-03-24", "c": 651.5}, {"d": "2026-03-25", "c": 655.13}, {"d": "2026-03-26", "c": 643.43}, {"d": "2026-03-27", "c": 632.46}, {"d": "2026-03-30", "c": 630.35}, {"d": "2026-03-31", "c": 648.67}, {"d": "2026-04-01", "c": 653.56}, {"d": "2026-04-02", "c": 654.14}, {"d": "2026-04-06", "c": 657.24}, {"d": "2026-04-07", "c": 657.53}, {"d": "2026-04-08", "c": 674.27}, {"d": "2026-04-09", "c": 678.16}, {"d": "2026-04-10", "c": 677.71}, {"d": "2026-04-13", "c": 684.34}, {"d": "2026-04-14", "c": 692.68}, {"d": "2026-04-15", "c": 698.14}, {"d": "2026-04-16", "c": 699.86}, {"d": "2026-04-17", "c": 708.32}, {"d": "2026-04-20", "c": 706.9}, {"d": "2026-04-21", "c": 702.27}, {"d": "2026-04-22", "c": 709.38}, {"d": "2026-04-23", "c": 706.63}, {"d": "2026-04-24", "c": 712.11}, {"d": "2026-04-27", "c": 713.33}, {"d": "2026-04-28", "c": 709.86}, {"d": "2026-04-29", "c": 709.75}, {"d": "2026-04-30", "c": 716.81}, {"d": "2026-05-01", "c": 718.8}, {"d": "2026-05-04", "c": 716.16}, {"d": "2026-05-05", "c": 721.91}, {"d": "2026-05-06", "c": 731.94}, {"d": "2026-05-07", "c": 729.7}, {"d": "2026-05-08", "c": 735.72}, {"d": "2026-05-11", "c": 737.4}, {"d": "2026-05-12", "c": 736.28}, {"d": "2026-05-13", "c": 740.4}, {"d": "2026-05-14", "c": 746.25}, {"d": "2026-05-15", "c": 737.27}, {"d": "2026-05-18", "c": 736.75}, {"d": "2026-05-19", "c": 731.84}, {"d": "2026-05-20", "c": 739.35}, {"d": "2026-05-21", "c": 740.81}, {"d": "2026-05-22", "c": 743.72}, {"d": "2026-05-26", "c": 748.66}, {"d": "2026-05-27", "c": 748.53}, {"d": "2026-05-28", "c": 752.66}, {"d": "2026-05-29", "c": 754.54}, {"d": "2026-06-01", "c": 756.59}, {"d": "2026-06-02", "c": 757.62}, {"d": "2026-06-03", "c": 752.3}, {"d": "2026-06-04", "c": 755.14}, {"d": "2026-06-05", "c": 735.65}, {"d": "2026-06-08", "c": 737.32}, {"d": "2026-06-09", "c": 735.16}, {"d": "2026-06-10", "c": 723.57}, {"d": "2026-06-11", "c": 735.86}, {"d": "2026-06-12", "c": 739.84}, {"d": "2026-06-15", "c": 752.89}, {"d": "2026-06-16", "c": 748.4}, {"d": "2026-06-17", "c": 739.06}, {"d": "2026-06-18", "c": 746.74}, {"d": "2026-06-22", "c": 744.39}, {"d": "2026-06-23", "c": 733.58}, {"d": "2026-06-24", "c": 733.24}, {"d": "2026-06-25", "c": 734.3}, {"d": "2026-06-26", "c": 728.99}, {"d": "2026-06-29", "c": 741.0}, {"d": "2026-06-30", "c": 746.77}, {"d": "2026-07-01", "c": 745.76}, {"d": "2026-07-02", "c": 744.78}], "XLE": [{"d": "2026-02-09", "c": 52.91}, {"d": "2026-02-10", "c": 52.85}, {"d": "2026-02-11", "c": 54.23}, {"d": "2026-02-12", "c": 53.25}, {"d": "2026-02-13", "c": 53.61}, {"d": "2026-02-17", "c": 53.02}, {"d": "2026-02-18", "c": 54.03}, {"d": "2026-02-19", "c": 54.43}, {"d": "2026-02-20", "c": 54.13}, {"d": "2026-02-23", "c": 54.4}, {"d": "2026-02-24", "c": 54.35}, {"d": "2026-02-25", "c": 54.12}, {"d": "2026-02-26", "c": 54.3}, {"d": "2026-02-27", "c": 55.16}, {"d": "2026-03-02", "c": 56.26}, {"d": "2026-03-03", "c": 55.75}, {"d": "2026-03-04", "c": 55.43}, {"d": "2026-03-05", "c": 55.71}, {"d": "2026-03-06", "c": 55.8}, {"d": "2026-03-09", "c": 55.55}, {"d": "2026-03-10", "c": 54.84}, {"d": "2026-03-11", "c": 56.2}, {"d": "2026-03-12", "c": 56.73}, {"d": "2026-03-13", "c": 56.91}, {"d": "2026-03-16", "c": 57.11}, {"d": "2026-03-17", "c": 57.71}, {"d": "2026-03-18", "c": 57.64}, {"d": "2026-03-19", "c": 58.55}, {"d": "2026-03-20", "c": 58.5}, {"d": "2026-03-23", "c": 59.2}, {"d": "2026-03-24", "c": 60.4}, {"d": "2026-03-25", "c": 60.14}, {"d": "2026-03-26", "c": 61.08}, {"d": "2026-03-27", "c": 62.11}, {"d": "2026-03-30", "c": 61.52}, {"d": "2026-03-31", "c": 60.82}, {"d": "2026-04-01", "c": 58.55}, {"d": "2026-04-02", "c": 58.83}, {"d": "2026-04-06", "c": 59.25}, {"d": "2026-04-07", "c": 59.73}, {"d": "2026-04-08", "c": 57.63}, {"d": "2026-04-09", "c": 56.92}, {"d": "2026-04-10", "c": 56.53}, {"d": "2026-04-13", "c": 56.7}, {"d": "2026-04-14", "c": 55.55}, {"d": "2026-04-15", "c": 55.36}, {"d": "2026-04-16", "c": 56.17}, {"d": "2026-04-17", "c": 54.63}, {"d": "2026-04-20", "c": 54.68}, {"d": "2026-04-21", "c": 55.47}, {"d": "2026-04-22", "c": 56.14}, {"d": "2026-04-23", "c": 56.57}, {"d": "2026-04-24", "c": 56.46}, {"d": "2026-04-27", "c": 56.36}, {"d": "2026-04-28", "c": 57.3}, {"d": "2026-04-29", "c": 58.61}, {"d": "2026-04-30", "c": 59.22}, {"d": "2026-05-01", "c": 58.43}, {"d": "2026-05-04", "c": 58.96}, {"d": "2026-05-05", "c": 59.02}, {"d": "2026-05-06", "c": 56.59}, {"d": "2026-05-07", "c": 55.55}, {"d": "2026-05-08", "c": 55.3}, {"d": "2026-05-11", "c": 56.76}, {"d": "2026-05-12", "c": 57.16}, {"d": "2026-05-13", "c": 57.22}, {"d": "2026-05-14", "c": 57.65}, {"d": "2026-05-15", "c": 59.01}, {"d": "2026-05-18", "c": 60.15}, {"d": "2026-05-19", "c": 60.85}, {"d": "2026-05-20", "c": 59.37}, {"d": "2026-05-21", "c": 58.71}, {"d": "2026-05-22", "c": 59.06}, {"d": "2026-05-26", "c": 57.44}, {"d": "2026-05-27", "c": 56.58}, {"d": "2026-05-28", "c": 56.54}, {"d": "2026-05-29", "c": 55.89}, {"d": "2026-06-01", "c": 56.89}, {"d": "2026-06-02", "c": 57.54}, {"d": "2026-06-03", "c": 58.29}, {"d": "2026-06-04", "c": 58.33}, {"d": "2026-06-05", "c": 57.26}, {"d": "2026-06-08", "c": 57.91}, {"d": "2026-06-09", "c": 56.98}, {"d": "2026-06-10", "c": 57.83}, {"d": "2026-06-11", "c": 56.71}, {"d": "2026-06-12", "c": 57.14}, {"d": "2026-06-15", "c": 55.15}, {"d": "2026-06-16", "c": 54.96}, {"d": "2026-06-17", "c": 54.28}, {"d": "2026-06-18", "c": 53.39}, {"d": "2026-06-22", "c": 54.06}, {"d": "2026-06-23", "c": 54.46}, {"d": "2026-06-24", "c": 53.57}, {"d": "2026-06-25", "c": 54.09}, {"d": "2026-06-26", "c": 53.84}, {"d": "2026-06-29", "c": 53.58}, {"d": "2026-06-30", "c": 53.11}, {"d": "2026-07-01", "c": 52.81}, {"d": "2026-07-02", "c": 53.22}], "XLY": [{"d": "2026-02-09", "c": 117.08}, {"d": "2026-02-10", "c": 117.86}, {"d": "2026-02-11", "c": 117.29}, {"d": "2026-02-12", "c": 115.67}, {"d": "2026-02-13", "c": 115.72}, {"d": "2026-02-17", "c": 115.58}, {"d": "2026-02-18", "c": 116.55}, {"d": "2026-02-19", "c": 115.78}, {"d": "2026-02-20", "c": 116.98}, {"d": "2026-02-23", "c": 114.53}, {"d": "2026-02-24", "c": 116.27}, {"d": "2026-02-25", "c": 116.62}, {"d": "2026-02-26", "c": 116.58}, {"d": "2026-02-27", "c": 116.39}, {"d": "2026-03-02", "c": 114.96}, {"d": "2026-03-03", "c": 113.9}, {"d": "2026-03-04", "c": 115.93}, {"d": "2026-03-05", "c": 116.09}, {"d": "2026-03-06", "c": 113.98}, {"d": "2026-03-09", "c": 114.13}, {"d": "2026-03-10", "c": 113.98}, {"d": "2026-03-11", "c": 113.68}, {"d": "2026-03-12", "c": 111.08}, {"d": "2026-03-13", "c": 110.42}, {"d": "2026-03-16", "c": 111.75}, {"d": "2026-03-17", "c": 112.73}, {"d": "2026-03-18", "c": 110.13}, {"d": "2026-03-19", "c": 109.26}, {"d": "2026-03-20", "c": 107.31}, {"d": "2026-03-23", "c": 109.9}, {"d": "2026-03-24", "c": 109.46}, {"d": "2026-03-25", "c": 110.51}, {"d": "2026-03-26", "c": 108.61}, {"d": "2026-03-27", "c": 105.47}, {"d": "2026-03-30", "c": 105.45}, {"d": "2026-03-31", "c": 108.76}, {"d": "2026-04-01", "c": 109.58}, {"d": "2026-04-02", "c": 107.93}, {"d": "2026-04-06", "c": 108.82}, {"d": "2026-04-07", "c": 107.56}, {"d": "2026-04-08", "c": 110.6}, {"d": "2026-04-09", "c": 112.52}, {"d": "2026-04-10", "c": 112.67}, {"d": "2026-04-13", "c": 113.69}, {"d": "2026-04-14", "c": 116.21}, {"d": "2026-04-15", "c": 117.94}, {"d": "2026-04-16", "c": 117.4}, {"d": "2026-04-17", "c": 120.17}, {"d": "2026-04-20", "c": 119.63}, {"d": "2026-04-21", "c": 118.73}, {"d": "2026-04-22", "c": 118.69}, {"d": "2026-04-23", "c": 117.51}, {"d": "2026-04-24", "c": 118.45}, {"d": "2026-04-27", "c": 117.61}, {"d": "2026-04-28", "c": 116.78}, {"d": "2026-04-29", "c": 116.61}, {"d": "2026-04-30", "c": 118.11}, {"d": "2026-05-01", "c": 118.39}, {"d": "2026-05-04", "c": 117.49}, {"d": "2026-05-05", "c": 117.84}, {"d": "2026-05-06", "c": 119.63}, {"d": "2026-05-07", "c": 119.64}, {"d": "2026-05-08", "c": 119.96}, {"d": "2026-05-11", "c": 119.13}, {"d": "2026-05-12", "c": 118.05}, {"d": "2026-05-13", "c": 118.48}, {"d": "2026-05-14", "c": 118.43}, {"d": "2026-05-15", "c": 116.3}, {"d": "2026-05-18", "c": 116.09}, {"d": "2026-05-19", "c": 114.8}, {"d": "2026-05-20", "c": 117.71}, {"d": "2026-05-21", "c": 118.46}, {"d": "2026-05-22", "c": 118.94}, {"d": "2026-05-26", "c": 119.21}, {"d": "2026-05-27", "c": 121.31}, {"d": "2026-05-28", "c": 121.82}, {"d": "2026-05-29", "c": 120.63}, {"d": "2026-06-01", "c": 117.95}, {"d": "2026-06-02", "c": 117.36}, {"d": "2026-06-03", "c": 116.5}, {"d": "2026-06-04", "c": 117.03}, {"d": "2026-06-05", "c": 114.63}, {"d": "2026-06-08", "c": 115.16}, {"d": "2026-06-09", "c": 115.64}, {"d": "2026-06-10", "c": 113.26}, {"d": "2026-06-11", "c": 116.07}, {"d": "2026-06-12", "c": 116.37}, {"d": "2026-06-15", "c": 118.33}, {"d": "2026-06-16", "c": 118.22}, {"d": "2026-06-17", "c": 115.26}, {"d": "2026-06-18", "c": 116.93}, {"d": "2026-06-22", "c": 114.94}, {"d": "2026-06-23", "c": 113.76}, {"d": "2026-06-24", "c": 115.07}, {"d": "2026-06-25", "c": 113.35}, {"d": "2026-06-26", "c": 114.37}, {"d": "2026-06-29", "c": 117.12}, {"d": "2026-06-30", "c": 117.28}, {"d": "2026-07-01", "c": 118.09}, {"d": "2026-07-02", "c": 117.12}], "XLV": [{"d": "2026-02-09", "c": 155.0}, {"d": "2026-02-10", "c": 154.01}, {"d": "2026-02-11", "c": 154.93}, {"d": "2026-02-12", "c": 154.68}, {"d": "2026-02-13", "c": 156.34}, {"d": "2026-02-17", "c": 156.04}, {"d": "2026-02-18", "c": 156.34}, {"d": "2026-02-19", "c": 155.93}, {"d": "2026-02-20", "c": 155.49}, {"d": "2026-02-23", "c": 157.2}, {"d": "2026-02-24", "c": 156.53}, {"d": "2026-02-25", "c": 156.49}, {"d": "2026-02-26", "c": 156.09}, {"d": "2026-02-27", "c": 158.84}, {"d": "2026-03-02", "c": 157.19}, {"d": "2026-03-03", "c": 155.41}, {"d": "2026-03-04", "c": 155.72}, {"d": "2026-03-05", "c": 152.61}, {"d": "2026-03-06", "c": 151.41}, {"d": "2026-03-09", "c": 152.95}, {"d": "2026-03-10", "c": 151.85}, {"d": "2026-03-11", "c": 151.56}, {"d": "2026-03-12", "c": 148.89}, {"d": "2026-03-13", "c": 148.52}, {"d": "2026-03-16", "c": 149.73}, {"d": "2026-03-17", "c": 148.37}, {"d": "2026-03-18", "c": 145.89}, {"d": "2026-03-19", "c": 145.37}, {"d": "2026-03-20", "c": 144.1}, {"d": "2026-03-23", "c": 144.13}, {"d": "2026-03-24", "c": 144.15}, {"d": "2026-03-25", "c": 145.6}, {"d": "2026-03-26", "c": 145.1}, {"d": "2026-03-27", "c": 142.63}, {"d": "2026-03-30", "c": 143.19}, {"d": "2026-03-31", "c": 145.97}, {"d": "2026-04-01", "c": 147.08}, {"d": "2026-04-02", "c": 146.17}, {"d": "2026-04-06", "c": 145.64}, {"d": "2026-04-07", "c": 145.93}, {"d": "2026-04-08", "c": 149.01}, {"d": "2026-04-09", "c": 148.67}, {"d": "2026-04-10", "c": 146.66}, {"d": "2026-04-13", "c": 147.32}, {"d": "2026-04-14", "c": 148.18}, {"d": "2026-04-15", "c": 147.12}, {"d": "2026-04-16", "c": 145.97}, {"d": "2026-04-17", "c": 148.15}, {"d": "2026-04-20", "c": 146.77}, {"d": "2026-04-21", "c": 145.28}, {"d": "2026-04-22", "c": 145.74}, {"d": "2026-04-23", "c": 145.6}, {"d": "2026-04-24", "c": 143.55}, {"d": "2026-04-27", "c": 142.83}, {"d": "2026-04-28", "c": 143.21}, {"d": "2026-04-29", "c": 142.21}, {"d": "2026-04-30", "c": 145.35}, {"d": "2026-05-01", "c": 144.52}, {"d": "2026-05-04", "c": 144.09}, {"d": "2026-05-05", "c": 144.66}, {"d": "2026-05-06", "c": 144.76}, {"d": "2026-05-07", "c": 144.08}, {"d": "2026-05-08", "c": 142.86}, {"d": "2026-05-11", "c": 142.41}, {"d": "2026-05-12", "c": 145.21}, {"d": "2026-05-13", "c": 146.07}, {"d": "2026-05-14", "c": 145.99}, {"d": "2026-05-15", "c": 144.46}, {"d": "2026-05-18", "c": 145.08}, {"d": "2026-05-19", "c": 146.67}, {"d": "2026-05-20", "c": 146.48}, {"d": "2026-05-21", "c": 147.5}, {"d": "2026-05-22", "c": 149.23}, {"d": "2026-05-26", "c": 147.86}, {"d": "2026-05-27", "c": 148.14}, {"d": "2026-05-28", "c": 150.22}, {"d": "2026-05-29", "c": 148.81}, {"d": "2026-06-01", "c": 147.19}, {"d": "2026-06-02", "c": 145.76}, {"d": "2026-06-03", "c": 146.9}, {"d": "2026-06-04", "c": 151.41}, {"d": "2026-06-05", "c": 152.34}, {"d": "2026-06-08", "c": 151.98}, {"d": "2026-06-09", "c": 153.89}, {"d": "2026-06-10", "c": 152.18}, {"d": "2026-06-11", "c": 153.41}, {"d": "2026-06-12", "c": 153.13}, {"d": "2026-06-15", "c": 152.22}, {"d": "2026-06-16", "c": 152.27}, {"d": "2026-06-17", "c": 150.05}, {"d": "2026-06-18", "c": 148.74}, {"d": "2026-06-22", "c": 150.06}, {"d": "2026-06-23", "c": 152.18}, {"d": "2026-06-24", "c": 153.35}, {"d": "2026-06-25", "c": 155.63}, {"d": "2026-06-26", "c": 160.34}, {"d": "2026-06-29", "c": 160.74}, {"d": "2026-06-30", "c": 158.66}, {"d": "2026-07-01", "c": 159.54}, {"d": "2026-07-02", "c": 163.74}], "GLD": [{"d": "2026-02-09", "c": 467.03}, {"d": "2026-02-10", "c": 462.4}, {"d": "2026-02-11", "c": 467.63}, {"d": "2026-02-12", "c": 451.39}, {"d": "2026-02-13", "c": 462.62}, {"d": "2026-02-17", "c": 448.2}, {"d": "2026-02-18", "c": 458.28}, {"d": "2026-02-19", "c": 459.56}, {"d": "2026-02-20", "c": 468.62}, {"d": "2026-02-23", "c": 481.28}, {"d": "2026-02-24", "c": 474.61}, {"d": "2026-02-25", "c": 473.42}, {"d": "2026-02-26", "c": 477.48}, {"d": "2026-02-27", "c": 483.75}, {"d": "2026-03-02", "c": 490.0}, {"d": "2026-03-03", "c": 468.14}, {"d": "2026-03-04", "c": 471.8}, {"d": "2026-03-05", "c": 466.13}, {"d": "2026-03-06", "c": 473.51}, {"d": "2026-03-09", "c": 472.53}, {"d": "2026-03-10", "c": 477.86}, {"d": "2026-03-11", "c": 476.24}, {"d": "2026-03-12", "c": 466.88}, {"d": "2026-03-13", "c": 460.84}, {"d": "2026-03-16", "c": 460.43}, {"d": "2026-03-17", "c": 459.27}, {"d": "2026-03-18", "c": 444.74}, {"d": "2026-03-19", "c": 426.41}, {"d": "2026-03-20", "c": 413.38}, {"d": "2026-03-23", "c": 404.04}, {"d": "2026-03-24", "c": 404.13}, {"d": "2026-03-25", "c": 416.29}, {"d": "2026-03-26", "c": 400.64}, {"d": "2026-03-27", "c": 414.7}, {"d": "2026-03-30", "c": 414.58}, {"d": "2026-03-31", "c": 430.29}, {"d": "2026-04-01", "c": 437.82}, {"d": "2026-04-02", "c": 429.41}, {"d": "2026-04-06", "c": 427.65}, {"d": "2026-04-07", "c": 431.81}, {"d": "2026-04-08", "c": 434.53}, {"d": "2026-04-09", "c": 437.91}, {"d": "2026-04-10", "c": 437.13}, {"d": "2026-04-13", "c": 435.36}, {"d": "2026-04-14", "c": 445.09}, {"d": "2026-04-15", "c": 440.46}, {"d": "2026-04-16", "c": 440.08}, {"d": "2026-04-17", "c": 445.93}, {"d": "2026-04-20", "c": 442.09}, {"d": "2026-04-21", "c": 429.57}, {"d": "2026-04-22", "c": 435.26}, {"d": "2026-04-23", "c": 431.04}, {"d": "2026-04-24", "c": 433.25}, {"d": "2026-04-27", "c": 429.89}, {"d": "2026-04-28", "c": 421.91}, {"d": "2026-04-29", "c": 417.41}, {"d": "2026-04-30", "c": 423.66}, {"d": "2026-05-01", "c": 423.18}, {"d": "2026-05-04", "c": 414.71}, {"d": "2026-05-05", "c": 418.27}, {"d": "2026-05-06", "c": 430.96}, {"d": "2026-05-07", "c": 431.68}, {"d": "2026-05-08", "c": 433.77}, {"d": "2026-05-11", "c": 434.65}, {"d": "2026-05-12", "c": 432.93}, {"d": "2026-05-13", "c": 430.5}, {"d": "2026-05-14", "c": 427.21}, {"d": "2026-05-15", "c": 417.29}, {"d": "2026-05-18", "c": 418.43}, {"d": "2026-05-19", "c": 411.5}, {"d": "2026-05-20", "c": 417.4}, {"d": "2026-05-21", "c": 416.99}, {"d": "2026-05-22", "c": 413.82}, {"d": "2026-05-26", "c": 414.0}, {"d": "2026-05-27", "c": 408.49}, {"d": "2026-05-28", "c": 412.77}, {"d": "2026-05-29", "c": 417.12}, {"d": "2026-06-01", "c": 411.26}, {"d": "2026-06-02", "c": 411.95}, {"d": "2026-06-03", "c": 407.87}, {"d": "2026-06-04", "c": 411.27}, {"d": "2026-06-05", "c": 396.24}, {"d": "2026-06-08", "c": 397.27}, {"d": "2026-06-09", "c": 390.78}, {"d": "2026-06-10", "c": 374.58}, {"d": "2026-06-11", "c": 386.32}, {"d": "2026-06-12", "c": 386.54}, {"d": "2026-06-15", "c": 396.55}, {"d": "2026-06-16", "c": 397.63}, {"d": "2026-06-17", "c": 388.6}, {"d": "2026-06-18", "c": 387.12}, {"d": "2026-06-22", "c": 384.59}, {"d": "2026-06-23", "c": 377.32}, {"d": "2026-06-24", "c": 365.92}, {"d": "2026-06-25", "c": 369.46}, {"d": "2026-06-26", "c": 373.63}, {"d": "2026-06-29", "c": 368.58}, {"d": "2026-06-30", "c": 368.38}, {"d": "2026-07-01", "c": 370.6}, {"d": "2026-07-02", "c": 378.13}], "VIX": [{"d": "2026-02-09", "c": 17.36}, {"d": "2026-02-10", "c": 17.79}, {"d": "2026-02-11", "c": 17.65}, {"d": "2026-02-12", "c": 20.82}, {"d": "2026-02-13", "c": 20.6}, {"d": "2026-02-16", "c": 21.2}, {"d": "2026-02-17", "c": 20.29}, {"d": "2026-02-18", "c": 19.62}, {"d": "2026-02-19", "c": 20.23}, {"d": "2026-02-20", "c": 19.09}, {"d": "2026-02-23", "c": 21.01}, {"d": "2026-02-24", "c": 19.55}, {"d": "2026-02-25", "c": 17.93}, {"d": "2026-02-26", "c": 18.63}, {"d": "2026-02-27", "c": 19.86}, {"d": "2026-03-02", "c": 21.44}, {"d": "2026-03-03", "c": 23.57}, {"d": "2026-03-04", "c": 21.15}, {"d": "2026-03-05", "c": 23.75}, {"d": "2026-03-06", "c": 29.49}, {"d": "2026-03-09", "c": 25.5}, {"d": "2026-03-10", "c": 24.93}, {"d": "2026-03-11", "c": 24.23}, {"d": "2026-03-12", "c": 27.29}, {"d": "2026-03-13", "c": 27.19}, {"d": "2026-03-16", "c": 23.51}, {"d": "2026-03-17", "c": 22.37}, {"d": "2026-03-18", "c": 25.09}, {"d": "2026-03-19", "c": 24.06}, {"d": "2026-03-20", "c": 26.78}, {"d": "2026-03-23", "c": 26.15}, {"d": "2026-03-24", "c": 26.95}, {"d": "2026-03-25", "c": 25.33}, {"d": "2026-03-26", "c": 27.44}, {"d": "2026-03-27", "c": 31.05}, {"d": "2026-03-30", "c": 30.61}, {"d": "2026-03-31", "c": 25.25}, {"d": "2026-04-01", "c": 24.54}, {"d": "2026-04-02", "c": 23.87}, {"d": "2026-04-06", "c": 24.17}, {"d": "2026-04-07", "c": 25.78}, {"d": "2026-04-08", "c": 21.04}, {"d": "2026-04-09", "c": 19.49}, {"d": "2026-04-10", "c": 19.23}, {"d": "2026-04-13", "c": 19.12}, {"d": "2026-04-14", "c": 18.36}, {"d": "2026-04-15", "c": 18.17}, {"d": "2026-04-16", "c": 17.94}, {"d": "2026-04-17", "c": 17.48}, {"d": "2026-04-20", "c": 18.87}, {"d": "2026-04-21", "c": 19.5}, {"d": "2026-04-22", "c": 18.92}, {"d": "2026-04-23", "c": 19.31}, {"d": "2026-04-24", "c": 18.71}, {"d": "2026-04-27", "c": 18.02}, {"d": "2026-04-28", "c": 17.83}, {"d": "2026-04-29", "c": 18.81}, {"d": "2026-04-30", "c": 16.89}, {"d": "2026-05-01", "c": 16.99}, {"d": "2026-05-04", "c": 18.29}, {"d": "2026-05-05", "c": 17.38}, {"d": "2026-05-06", "c": 17.39}, {"d": "2026-05-07", "c": 17.08}, {"d": "2026-05-08", "c": 17.19}, {"d": "2026-05-11", "c": 18.38}, {"d": "2026-05-12", "c": 17.99}, {"d": "2026-05-13", "c": 17.87}, {"d": "2026-05-14", "c": 17.26}, {"d": "2026-05-15", "c": 18.43}, {"d": "2026-05-18", "c": 17.82}, {"d": "2026-05-19", "c": 18.06}, {"d": "2026-05-20", "c": 17.44}, {"d": "2026-05-21", "c": 16.76}, {"d": "2026-05-22", "c": 16.7}, {"d": "2026-05-25", "c": 16.59}, {"d": "2026-05-26", "c": 17.01}, {"d": "2026-05-27", "c": 16.29}, {"d": "2026-05-28", "c": 15.74}, {"d": "2026-05-29", "c": 15.32}, {"d": "2026-06-01", "c": 16.05}, {"d": "2026-06-02", "c": 15.77}, {"d": "2026-06-03", "c": 16.06}, {"d": "2026-06-04", "c": 15.4}, {"d": "2026-06-05", "c": 21.51}, {"d": "2026-06-08", "c": 18.92}, {"d": "2026-06-09", "c": 19.87}, {"d": "2026-06-10", "c": 22.22}, {"d": "2026-06-11", "c": 19.44}, {"d": "2026-06-12", "c": 17.68}, {"d": "2026-06-15", "c": 16.2}, {"d": "2026-06-16", "c": 16.41}, {"d": "2026-06-17", "c": 18.44}, {"d": "2026-06-18", "c": 16.4}, {"d": "2026-06-19", "c": 16.78}, {"d": "2026-06-22", "c": 17.28}, {"d": "2026-06-23", "c": 19.49}, {"d": "2026-06-24", "c": 18.63}, {"d": "2026-06-25", "c": 18.89}, {"d": "2026-06-26", "c": 18.41}, {"d": "2026-06-29", "c": 17.65}, {"d": "2026-06-30", "c": 16.45}, {"d": "2026-07-01", "c": 16.59}, {"d": "2026-07-02", "c": 16.15}, {"d": "2026-07-03", "c": 15.81}], "OVX": [{"d": "2026-02-09", "c": 50.79}, {"d": "2026-02-10", "c": 48.02}, {"d": "2026-02-11", "c": 44.33}, {"d": "2026-02-12", "c": 42.0}, {"d": "2026-02-13", "c": 42.18}, {"d": "2026-02-17", "c": 42.54}, {"d": "2026-02-18", "c": 51.49}, {"d": "2026-02-19", "c": 56.73}, {"d": "2026-02-20", "c": 56.12}, {"d": "2026-02-23", "c": 59.05}, {"d": "2026-02-24", "c": 58.82}, {"d": "2026-02-25", "c": 58.97}, {"d": "2026-02-26", "c": 59.8}, {"d": "2026-02-27", "c": 64.68}, {"d": "2026-03-02", "c": 68.9}, {"d": "2026-03-03", "c": 73.99}, {"d": "2026-03-04", "c": 75.2}, {"d": "2026-03-05", "c": 83.83}, {"d": "2026-03-06", "c": 103.6}, {"d": "2026-03-09", "c": 100.53}, {"d": "2026-03-10", "c": 108.19}, {"d": "2026-03-11", "c": 120.91}, {"d": "2026-03-12", "c": 120.22}, {"d": "2026-03-13", "c": 119.02}, {"d": "2026-03-16", "c": 101.97}, {"d": "2026-03-17", "c": 95.92}, {"d": "2026-03-18", "c": 97.28}, {"d": "2026-03-19", "c": 92.68}, {"d": "2026-03-20", "c": 91.85}, {"d": "2026-03-23", "c": 89.78}, {"d": "2026-03-24", "c": 89.34}, {"d": "2026-03-25", "c": 90.16}, {"d": "2026-03-26", "c": 92.37}, {"d": "2026-03-27", "c": 96.64}, {"d": "2026-03-30", "c": 95.84}, {"d": "2026-03-31", "c": 89.39}, {"d": "2026-04-01", "c": 91.8}, {"d": "2026-04-02", "c": 93.14}, {"d": "2026-04-06", "c": 96.14}, {"d": "2026-04-07", "c": 98.79}, {"d": "2026-04-08", "c": 83.91}, {"d": "2026-04-09", "c": 81.74}, {"d": "2026-04-10", "c": 78.01}, {"d": "2026-04-13", "c": 80.55}, {"d": "2026-04-14", "c": 75.35}, {"d": "2026-04-15", "c": 72.23}, {"d": "2026-04-16", "c": 73.04}, {"d": "2026-04-17", "c": 69.01}, {"d": "2026-04-20", "c": 73.79}, {"d": "2026-04-21", "c": 85.57}, {"d": "2026-04-22", "c": 76.77}, {"d": "2026-04-23", "c": 78.67}, {"d": "2026-04-24", "c": 75.83}, {"d": "2026-04-27", "c": 73.11}, {"d": "2026-04-28", "c": 70.5}, {"d": "2026-04-29", "c": 75.96}, {"d": "2026-04-30", "c": 75.08}, {"d": "2026-05-01", "c": 75.4}, {"d": "2026-05-04", "c": 78.63}, {"d": "2026-05-05", "c": 74.73}, {"d": "2026-05-06", "c": 72.34}, {"d": "2026-05-07", "c": 72.25}, {"d": "2026-05-08", "c": 72.15}, {"d": "2026-05-11", "c": 75.66}, {"d": "2026-05-12", "c": 75.69}, {"d": "2026-05-13", "c": 70.94}, {"d": "2026-05-14", "c": 68.92}, {"d": "2026-05-15", "c": 72.35}, {"d": "2026-05-18", "c": 72.07}, {"d": "2026-05-19", "c": 72.89}, {"d": "2026-05-20", "c": 72.77}, {"d": "2026-05-21", "c": 73.54}, {"d": "2026-05-22", "c": 75.97}, {"d": "2026-05-26", "c": 65.06}, {"d": "2026-05-27", "c": 59.97}, {"d": "2026-05-28", "c": 58.3}, {"d": "2026-05-29", "c": 57.84}, {"d": "2026-06-01", "c": 61.24}, {"d": "2026-06-02", "c": 59.53}, {"d": "2026-06-03", "c": 60.52}, {"d": "2026-06-04", "c": 59.79}, {"d": "2026-06-05", "c": 57.75}, {"d": "2026-06-08", "c": 58.36}, {"d": "2026-06-09", "c": 57.63}, {"d": "2026-06-10", "c": 60.28}, {"d": "2026-06-11", "c": 56.3}, {"d": "2026-06-12", "c": 54.1}, {"d": "2026-06-15", "c": 47.75}, {"d": "2026-06-16", "c": 53.1}, {"d": "2026-06-17", "c": 53.65}, {"d": "2026-06-18", "c": 51.54}, {"d": "2026-06-22", "c": 50.7}, {"d": "2026-06-23", "c": 46.6}, {"d": "2026-06-24", "c": 47.61}, {"d": "2026-06-25", "c": 46.96}, {"d": "2026-06-26", "c": 46.46}, {"d": "2026-06-29", "c": 45.07}, {"d": "2026-06-30", "c": 43.17}, {"d": "2026-07-01", "c": 40.76}, {"d": "2026-07-02", "c": 41.62}]}, "current": {"USO": {"date": "2026-07-02", "price": 103.98}, "JETS": {"date": "2026-07-02", "price": 33.2}, "SPY": {"date": "2026-07-02", "price": 744.78}, "XLE": {"date": "2026-07-02", "price": 53.22}, "XLY": {"date": "2026-07-02", "price": 117.12}, "XLV": {"date": "2026-07-02", "price": 163.74}, "GLD": {"date": "2026-07-02", "price": 378.13}, "VIX": {"date": "2026-07-03", "price": 15.81}, "OVX": {"date": "2026-07-02", "price": 41.62}}, "periodReturn": {"USO": 33.3, "JETS": 7.1, "SPY": 7.9, "XLE": 0.6, "XLY": 0.0, "XLV": 5.6, "GLD": -19.0}};
+
+/* ---------------- Black-Scholes engine (mirrors the Python Phase 1 engine) ---------------- */
+function normCDF(x) {
+  const a1=0.254829592,a2=-0.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=0.3275911;
+  const sign = x < 0 ? -1 : 1;
+  x = Math.abs(x) / Math.sqrt(2);
+  const t = 1 / (1 + p * x);
+  const y = 1 - (((((a5*t+a4)*t)+a3)*t+a2)*t+a1)*t*Math.exp(-x*x);
+  return 0.5 * (1 + sign * y);
+}
+function normPDF(x) { return Math.exp(-x*x/2) / Math.sqrt(2*Math.PI); }
+
+function d1d2(S,K,T,r,sigma,q) {
+  const d1 = (Math.log(S/K) + (r - q + 0.5*sigma*sigma)*T) / (sigma*Math.sqrt(T));
+  const d2 = d1 - sigma*Math.sqrt(T);
+  return [d1, d2];
+}
+function bsPrice(S,K,T,r,sigma,q,right) {
+  const [d1,d2] = d1d2(S,K,T,r,sigma,q);
+  if (right === 'call') return S*Math.exp(-q*T)*normCDF(d1) - K*Math.exp(-r*T)*normCDF(d2);
+  return K*Math.exp(-r*T)*normCDF(-d2) - S*Math.exp(-q*T)*normCDF(-d1);
+}
+function bsGreeks(S,K,T,r,sigma,q,right) {
+  const [d1,d2] = d1d2(S,K,T,r,sigma,q);
+  const pdf = normPDF(d1);
+  const discQ = Math.exp(-q*T), discR = Math.exp(-r*T);
+  const gamma = discQ*pdf/(S*sigma*Math.sqrt(T));
+  const vega = S*discQ*pdf*Math.sqrt(T)/100;
+  let delta, theta, rho;
+  if (right === 'call') {
+    delta = discQ*normCDF(d1);
+    theta = (-S*discQ*pdf*sigma/(2*Math.sqrt(T)) - r*K*discR*normCDF(d2) + q*S*discQ*normCDF(d1))/365;
+    rho = K*T*discR*normCDF(d2)/100;
+  } else {
+    delta = discQ*(normCDF(d1)-1);
+    theta = (-S*discQ*pdf*sigma/(2*Math.sqrt(T)) + r*K*discR*normCDF(-d2) - q*S*discQ*normCDF(-d1))/365;
+    rho = -K*T*discR*normCDF(-d2)/100;
+  }
+  return {delta, gamma, vega, theta, rho};
+}
+
+/* ---------------- Number formatting helpers ---------------- */
+const fmtUSD = (v, decimals) => {
+  const d = decimals === undefined ? 0 : decimals;
+  return '$' + v.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+};
+const fmtPct = (v, decimals) => {
+  const d = decimals === undefined ? 1 : decimals;
+  const sign = v > 0 ? '+' : '';
+  return sign + v.toFixed(d) + '%';
+};
+const fmtNum = (v, decimals) => v.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+const fmtDateShort = (isoDate) => {
+  const d = new Date(isoDate + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+};
+
+/* ---------------- Chart.js dark theme defaults ---------------- */
+Chart.defaults.color = '#939191';
+Chart.defaults.font.family = "'IBM Plex Mono', monospace";
+Chart.defaults.font.size = 10.5;
+Chart.defaults.borderColor = '#383838';
+const COLORS = {
+  amber: '#FF5A22', amberDim: 'rgba(255,90,34,0.16)',
+  teal: '#3BCFCD', tealDim: 'rgba(59,207,205,0.16)',
+  red: '#FF5A22', redDim: 'rgba(255,90,34,0.16)',
+  green: '#3BCFCD', greenDim: 'rgba(59,207,205,0.16)',
+  muted: '#939191', text: '#E3E6E9',
+  palette: ['#FF5A22','#1253FF','#3BCFCD','#00008C','#939191','#E3E6E9','#FF8F5E']
+};
+
+/* ================= TAB SCAFFOLDING ================= */
+const TABS = [
+  {id: 'overview', label: 'Market Overview'},
+  {id: 'calculator', label: 'Pricing Calculator'},
+  {id: 'events', label: 'Event Study'},
+  {id: 'hedging', label: 'Hedge Simulator'},
+  {id: 'modelrisk', label: 'Model Risk'},
+];
+const nav = document.getElementById('tabNav');
+const pages = document.getElementById('pages');
+TABS.forEach(t => {
+  const btn = document.createElement('button');
+  btn.textContent = t.label;
+  btn.dataset.tab = t.id;
+  btn.onclick = () => switchTab(t.id);
+  nav.appendChild(btn);
+  const page = document.createElement('div');
+  page.className = 'page';
+  page.id = 'page-' + t.id;
+  pages.appendChild(page);
+});
+function switchTab(id) {
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('active', b.dataset.tab === id));
+  document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === 'page-' + id));
+}
+
+/* ================= Shared chart options builder ================= */
+function chartOpts(opts) {
+  opts = opts || {};
+  const scales = {
+    x: {
+      grid: { color: '#383838' },
+      ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 9 },
+      title: { display: !!opts.xLabel, text: opts.xLabel || '', color: '#939191', font: { size: 11, family: "'IBM Plex Mono', monospace" } },
+    },
+    y: {
+      grid: { color: '#383838' },
+      title: { display: !!opts.yLabel, text: opts.yLabel || '', color: '#939191', font: { size: 11, family: "'IBM Plex Mono', monospace" } },
+    },
+  };
+  if (opts.y1Label) {
+    scales.y1 = {
+      position: 'right',
+      grid: { drawOnChartArea: false },
+      title: { display: true, text: opts.y1Label, color: '#939191', font: { size: 11, family: "'IBM Plex Mono', monospace" } },
+    };
+  }
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    layout: { padding: { top: 4, right: 4, bottom: 0, left: 0 } },
+    plugins: {
+      title: {
+        display: !!opts.title,
+        text: opts.title || '',
+        color: '#E3E6E9',
+        font: { size: 12.5, family: "'Space Grotesk', sans-serif", weight: '600' },
+        padding: { bottom: 16 },
+        align: 'start',
+      },
+      legend: {
+        display: !!opts.legend,
+        position: 'top',
+        align: 'end',
+        labels: { boxWidth: 10, boxHeight: 10, font: { size: 10.5 }, padding: 14 },
+      },
+      tooltip: {
+        backgroundColor: '#3A3A3A', borderColor: '#4A4A4A', borderWidth: 1,
+        titleColor: '#E3E6E9', bodyColor: '#E3E6E9', padding: 10, boxPadding: 4,
+      },
+    },
+    scales,
+  };
+}
+
+/* ================= PAGE 1: MARKET OVERVIEW ================= */
+function buildOverview() {
+  const el = document.getElementById('page-overview');
+  const tickers = ['USO','XLE','JETS','SPY','XLY','XLV','GLD'];
+  const names = {USO:'Oil (USO)', XLE:'Energy (XLE)', JETS:'Airlines (JETS)', SPY:'Broad mkt (SPY)',
+                 XLY:'Consumer (XLY)', XLV:'Healthcare (XLV)', GLD:'Gold (GLD)'};
+
+  let statHtml = '<div class="stat-group-label">Asset prices &mdash; most recent close</div><div class="stat-row">';
+  tickers.forEach(t => {
+    const c = DATA.current[t];
+    const ret = DATA.periodReturn[t];
+    const cls = ret > 0 ? 'up' : (ret < 0 ? 'down' : 'flat');
+    statHtml += `<div class="stat">
+      <div class="label">${names[t]}</div>
+      <div class="value">${fmtUSD(c.price, 2)}</div>
+      <div class="sub ${cls}">${fmtPct(ret)} since Feb 9</div>
+    </div>`;
+  });
+  statHtml += '</div>';
+
+  statHtml += '<div class="stat-group-label">Volatility proxies &mdash; most recent level</div><div class="stat-row cols-2">';
+  [['VIX','Broad-market vol (VIX)'], ['OVX','Oil vol (OVX)']].forEach(([t, label]) => {
+    const c = DATA.current[t];
+    statHtml += `<div class="stat">
+      <div class="label">${label}</div>
+      <div class="value">${fmtNum(c.price, 1)}</div>
+      <div class="sub">as of ${c.date}</div>
+    </div>`;
+  });
+  statHtml += '</div>';
+
+  el.innerHTML = statHtml + `
+    <div class="panel">
+      <h2>Timeline of real events studied</h2>
+      <div class="desc">Three real, dated events from the Iran&ndash;Israel&ndash;U.S. conflict, referenced throughout every tab of this dashboard.</div>
+      <div id="timelineWrap"></div>
+    </div>
+    <div class="grid grid-2">
+      <div class="panel">
+        <div class="chart-wrap tall"><canvas id="overviewChart"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="chart-wrap tall"><canvas id="volChart"></canvas></div>
+        <div class="note real">Real data: CBOE-style volatility indices (VIX, OVX), used as proxies for this project's own option-chain implied volatility, which would require paid historical data.</div>
+      </div>
+    </div>
+  `;
+
+  buildTimeline();
+
+  const labels = DATA.priceSeries.SPY.map(r => fmtDateShort(r.d));
+  const datasets = tickers.map((t, i) => {
+    const series = DATA.priceSeries[t];
+    const base = series[0].c;
+    return {
+      label: t,
+      data: series.map(r => (r.c / base) * 100),
+      borderColor: COLORS.palette[i % COLORS.palette.length],
+      backgroundColor: 'transparent',
+      borderWidth: t === 'USO' ? 2.5 : 1.3,
+      pointRadius: 0,
+      tension: 0.15,
+    };
+  });
+  new Chart(document.getElementById('overviewChart'), {
+    type: 'line',
+    data: { labels, datasets },
+    options: chartOpts({
+      title: 'Indexed price paths, all seven assets (Feb 9, 2026 = 100)',
+      xLabel: 'Date (2026)', yLabel: 'Index level (start = 100)', legend: true,
+    })
+  });
+
+  new Chart(document.getElementById('volChart'), {
+    type: 'line',
+    data: {
+      labels: DATA.priceSeries.VIX.map(r => fmtDateShort(r.d)),
+      datasets: [
+        { label: 'VIX (broad market)', data: DATA.priceSeries.VIX.map(r => r.c), borderColor: COLORS.teal, backgroundColor: 'transparent', pointRadius: 0, borderWidth: 2 },
+        { label: 'OVX (oil)', data: DATA.priceSeries.OVX.map(r => r.c), borderColor: COLORS.amber, backgroundColor: 'transparent', pointRadius: 0, borderWidth: 2 },
+      ]
+    },
+    options: chartOpts({
+      title: 'Volatility index levels through the study period',
+      xLabel: 'Date (2026)', yLabel: 'Index level', legend: true,
+    })
+  });
+}
+
+function buildTimeline() {
+  const wrap = document.getElementById('timelineWrap');
+  const evs = DATA.events;
+  const min = new Date('2026-02-01').getTime(), max = new Date('2026-07-15').getTime();
+  let html = '<div class="timeline"><div class="track"></div>';
+  evs.forEach(e => {
+    const t = new Date(e.Market_T0).getTime();
+    const pct = ((t - min) / (max - min)) * 100;
+    const color = e.Direction === 'Escalation' ? COLORS.red : COLORS.green;
+    html += `<div class="tl-event" style="left:${pct}%; background:${color};" title="${e.Event}"></div>`;
+
+    let labelStyle = `left:${pct}%;`;
+    if (pct > 82) {
+      labelStyle += 'transform: translateX(-88%); text-align: right;';
+    } else if (pct < 12) {
+      labelStyle += 'transform: translateX(-12%); text-align: left;';
+    } else {
+      labelStyle += 'transform: translateX(-50%);';
+    }
+    html += `<div class="tl-label" style="${labelStyle}"><b>${e.Event_ID} &middot; ${e.Market_T0}</b>${e.Event}</div>`;
+  });
+  html += '</div>';
+  wrap.innerHTML = html;
+}
+
+/* ================= PAGE 2: PRICING CALCULATOR ================= */
+function buildCalculator() {
+  const el = document.getElementById('page-calculator');
+  el.innerHTML = `
+    <div class="panel">
+      <h2>Black-Scholes pricing calculator</h2>
+      <div class="desc">
+        The Phase 1 engine, live. Pick an asset preset (uses its real current spot price and VIX/OVX-proxy
+        volatility) or enter your own inputs. This is a pricing tool, not a live market quote &mdash; there's
+        no real option chain behind it.
+      </div>
+      <div class="preset-row" id="presetRow"></div>
+      <div class="calc-grid">
+        <div>
+          <div class="field"><label>Underlying price (S), $</label><input type="number" id="inS" step="0.01"></div>
+          <div class="field"><label>Strike price (K), $</label><input type="number" id="inK" step="0.01"></div>
+          <div class="field"><label>Days to expiration</label><input type="number" id="inT" step="1"></div>
+          <div class="field"><label>Volatility, annualized (%)</label><input type="number" id="inSigma" step="0.1"></div>
+          <div class="field"><label>Risk-free rate (%)</label><input type="number" id="inR" step="0.1" value="4.5"></div>
+          <div class="field"><label>Dividend yield (%)</label><input type="number" id="inQ" step="0.1" value="0"></div>
+          <div class="field"><label>Option type</label>
+            <select id="inRight"><option value="call">Call</option><option value="put">Put</option></select>
+          </div>
+        </div>
+        <div>
+          <div class="price-hero-label">Option price</div>
+          <div class="price-hero" id="priceOut">$0.00</div>
+          <div class="greek-grid">
+            <div class="greek-box"><div class="g-label">Delta</div><div class="g-value" id="gDelta">&mdash;</div></div>
+            <div class="greek-box"><div class="g-label">Gamma</div><div class="g-value" id="gGamma">&mdash;</div></div>
+            <div class="greek-box"><div class="g-label">Vega</div><div class="g-value" id="gVega">&mdash;</div></div>
+            <div class="greek-box"><div class="g-label">Theta / day</div><div class="g-value" id="gTheta">&mdash;</div></div>
+            <div class="greek-box"><div class="g-label">Rho</div><div class="g-value" id="gRho">&mdash;</div></div>
+          </div>
+          <div class="chart-wrap"><canvas id="payoffChart"></canvas></div>
+          <div class="note">Payoff chart shows value at expiration (intrinsic value only) across a range of underlying prices; the dashed marker is today's spot price.</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const presets = [
+    {label: 'USO (oil)', S: DATA.current.USO.price, sigma: DATA.current.OVX.price, q: 0},
+    {label: 'SPY (broad mkt)', S: DATA.current.SPY.price, sigma: DATA.current.VIX.price, q: 1.2},
+    {label: 'JETS (airlines)', S: DATA.current.JETS.price, sigma: DATA.current.VIX.price * 1.6, q: 0.7},
+    {label: 'XLV (healthcare)', S: DATA.current.XLV.price, sigma: DATA.current.VIX.price * 1.1, q: 1.6},
+    {label: 'GLD (gold)', S: DATA.current.GLD.price, sigma: DATA.current.VIX.price * 0.95, q: 0},
+  ];
+  const presetRow = document.getElementById('presetRow');
+  const presetButtons = [];
+  presets.forEach((p, idx) => {
+    const b = document.createElement('button');
+    b.textContent = p.label;
+    b.onclick = () => {
+      presetButtons.forEach(x => x.classList.toggle('active', x === b));
+      document.getElementById('inS').value = p.S.toFixed(2);
+      document.getElementById('inK').value = p.S.toFixed(2);
+      document.getElementById('inT').value = 30;
+      document.getElementById('inSigma').value = p.sigma.toFixed(1);
+      document.getElementById('inQ').value = p.q;
+      recalc();
+    };
+    presetRow.appendChild(b);
+    presetButtons.push(b);
+  });
+
+  ['inS','inK','inT','inSigma','inR','inQ'].forEach(id => {
+    document.getElementById(id).addEventListener('input', recalc);
+  });
+  document.getElementById('inRight').addEventListener('change', recalc);
+
+  let payoffChart = null;
+
+  presetButtons[0].click(); // initialize with USO preset
+
+  function recalc() {
+    const S = parseFloat(document.getElementById('inS').value) || 0;
+    const K = parseFloat(document.getElementById('inK').value) || 0;
+    const days = parseFloat(document.getElementById('inT').value) || 1;
+    const sigma = (parseFloat(document.getElementById('inSigma').value) || 0) / 100;
+    const r = (parseFloat(document.getElementById('inR').value) || 0) / 100;
+    const q = (parseFloat(document.getElementById('inQ').value) || 0) / 100;
+    const right = document.getElementById('inRight').value;
+    const T = days / 365;
+    if (S <= 0 || K <= 0 || T <= 0 || sigma <= 0) return;
+
+    const price = bsPrice(S,K,T,r,sigma,q,right);
+    const g = bsGreeks(S,K,T,r,sigma,q,right);
+    document.getElementById('priceOut').textContent = fmtUSD(price, 2);
+    document.getElementById('gDelta').textContent = fmtNum(g.delta, 3);
+    document.getElementById('gGamma').textContent = fmtNum(g.gamma, 4);
+    document.getElementById('gVega').textContent = fmtNum(g.vega, 3);
+    document.getElementById('gTheta').textContent = fmtNum(g.theta, 3);
+    document.getElementById('gRho').textContent = fmtNum(g.rho, 3);
+
+    const range = [];
+    const payoff = [];
+    for (let m = 0.6; m <= 1.4001; m += 0.02) {
+      const s = S * m;
+      range.push(s.toFixed(0));
+      payoff.push(right === 'call' ? Math.max(s - K, 0) : Math.max(K - s, 0));
+    }
+    if (payoffChart) payoffChart.destroy();
+    payoffChart = new Chart(document.getElementById('payoffChart'), {
+      type: 'line',
+      data: { labels: range, datasets: [
+        { label: 'Payoff at expiration', data: payoff, borderColor: COLORS.amber, backgroundColor: COLORS.amberDim, fill: true, pointRadius: 0, borderWidth: 2, tension: 0.1 }
+      ]},
+      options: chartOpts({
+        title: (right === 'call' ? 'Call' : 'Put') + ' payoff at expiration, K = ' + fmtUSD(K,0),
+        xLabel: 'Underlying price at expiration ($)', yLabel: 'Payoff ($)', legend: false,
+      })
+    });
+  }
+}
+
+/* ================= PAGE 3: EVENT STUDY ================= */
+function buildEvents() {
+  const el = document.getElementById('page-events');
+  el.innerHTML = `
+    <div class="panel">
+      <h2>Geopolitical volatility transmission</h2>
+      <div class="desc">Real measured price move and volatility-proxy change for each asset, around each event. Select an event below.</div>
+      <div class="tabs-inline" id="eventTabs"></div>
+      <div class="chart-wrap tall"><canvas id="eventChart"></canvas></div>
+      <div class="note real">Real data: computed directly from historical daily closes and VIX/OVX levels, 5 trading days before vs. after each event's market date.</div>
+    </div>
+    <div class="grid grid-2">
+      <div class="panel">
+        <div class="chart-wrap"><canvas id="impliedChart"></canvas></div>
+      </div>
+      <div class="panel">
+        <h2>USO correlation shifts</h2>
+        <div class="desc">Correlation of daily returns with USO, 10 trading days before vs. after each event. A widening gap means diversification broke down during the event.</div>
+        <table id="corrTable"></table>
+      </div>
+    </div>
+  `;
+
+  const events = DATA.events;
+  const tabsEl = document.getElementById('eventTabs');
+  let activeEvent = events[0].Event_ID;
+  events.forEach(e => {
+    const b = document.createElement('button');
+    b.textContent = e.Event_ID + ' \u00b7 ' + e.Direction;
+    b.dataset.id = e.Event_ID;
+    b.className = e.Event_ID === activeEvent ? 'active' : '';
+    b.onclick = () => { activeEvent = e.Event_ID; renderEventCharts(); tabsEl.querySelectorAll('button').forEach(x => x.classList.toggle('active', x.dataset.id === activeEvent)); };
+    tabsEl.appendChild(b);
+  });
+
+  let eventChart = null, impliedChart = null;
+  function activeEventLabel() {
+    const e = events.find(x => x.Event_ID === activeEvent);
+    return e.Event_ID + ': ' + e.Event;
+  }
+
+  function renderEventCharts() {
+    const sub = DATA.eventMetrics.filter(r => r.event_id === activeEvent);
+    const tickers = sub.map(r => r.ticker);
+
+    if (eventChart) eventChart.destroy();
+    eventChart = new Chart(document.getElementById('eventChart'), {
+      type: 'bar',
+      data: {
+        labels: tickers,
+        datasets: [
+          { label: 'Price move (%)', data: sub.map(r => r.price_move_pct), backgroundColor: COLORS.amber, yAxisID: 'y' },
+          { label: 'Vol proxy change (pp)', data: sub.map(r => r.vol_proxy_change_pp), backgroundColor: COLORS.teal, yAxisID: 'y1' },
+          { label: 'Realized vol change (pp)', data: sub.map(r => r.realized_vol_change_pp), backgroundColor: COLORS.red, yAxisID: 'y1' },
+        ]
+      },
+      options: chartOpts({
+        title: activeEventLabel(),
+        xLabel: 'Asset', yLabel: 'Price move (%)', y1Label: 'Volatility change (percentage points)', legend: true,
+      })
+    });
+
+    if (impliedChart) impliedChart.destroy();
+    impliedChart = new Chart(document.getElementById('impliedChart'), {
+      type: 'bar',
+      data: {
+        labels: tickers,
+        datasets: [
+          { label: 'Actual |move| (%)', data: sub.map(r => Math.abs(r.price_move_pct)), backgroundColor: COLORS.amber },
+          { label: 'Implied move, approx. (%)', data: sub.map(r => r.implied_move_approx_pct), backgroundColor: COLORS.tealDim, borderColor: COLORS.teal, borderWidth: 1.5 },
+        ]
+      },
+      options: chartOpts({
+        title: 'Options-implied move (approx.) vs. actual realized move',
+        xLabel: 'Asset', yLabel: 'Move (%)', legend: true,
+      })
+    });
+
+    const corrEl = document.getElementById('corrTable');
+    const corrSub = DATA.correlation.filter(r => r.event_id === activeEvent);
+    let rows = '<tr><th style="text-align:left;">Pair</th><th>Before</th><th>After</th><th>Change</th></tr>';
+    corrSub.forEach(r => {
+      const cls = r.corr_change >= 0 ? 'up' : 'down';
+      rows += '<tr><td class="label-cell">' + r.pair + '</td><td>' + fmtNum(r.corr_before,2) + '</td><td>' + fmtNum(r.corr_after,2) + '</td><td class="' + cls + '">' + (r.corr_change >= 0 ? '+' : '') + fmtNum(r.corr_change,2) + '</td></tr>';
+    });
+    corrEl.innerHTML = rows;
+  }
+  renderEventCharts();
+}
+
+/* ================= PAGE 4: HEDGE SIMULATOR ================= */
+function buildHedging() {
+  const el = document.getElementById('page-hedging');
+  el.innerHTML = `
+    <div class="panel">
+      <h2>Hypothetical client portfolio &mdash; hedge comparison</h2>
+      <div class="desc">
+        SPY 65% &middot; XLY 10% &middot; JETS 5% &middot; XLV 10% &middot; cash/bonds 10%. Scenarios are calibrated
+        from real Phase 5 event returns (Major Disruption = E1's actual moves, De-escalation = E3's actual moves);
+        Mild Escalation is an interpolation (35% of Major Disruption's magnitude) &mdash; no event in this project's
+        sample was actually mild, so that scenario is a modeling assumption, not a measurement.
+      </div>
+      <div style="display:flex; gap:24px; flex-wrap:wrap; align-items:flex-end; margin-bottom:8px;">
+        <div class="field" style="max-width:260px; margin-bottom:0;">
+          <label>Portfolio value ($)</label>
+          <input type="number" id="portValue" value="1000000" step="10000">
+        </div>
+        <div class="tabs-inline" id="chartModeToggle" style="margin-bottom:0;">
+          <button data-mode="pct" class="active">Show as %</button>
+          <button data-mode="usd">Show as $</button>
+        </div>
+      </div>
+      <div class="chart-wrap tall"><canvas id="hedgeChart"></canvas></div>
+      <div class="note">Percentage returns are the same at any portfolio size, since every hedge is sized as a fixed share of the portfolio &mdash; that's expected, not a bug. Switch to "Show as $" to see the chart move with the portfolio value above.</div>
+    </div>
+    <div class="grid grid-2">
+      <div class="panel">
+        <h2>Protection efficiency</h2>
+        <div class="desc">Loss reduction vs. no hedge, per dollar of premium, in the Major Disruption scenario (real E1 data).</div>
+        <table id="effTable"></table>
+      </div>
+      <div class="panel">
+        <h2>Hedge Greeks at inception</h2>
+        <div class="desc">Position-level Greeks for each hedge, scaled to the portfolio value above.</div>
+        <table id="greeksTable"></table>
+      </div>
+    </div>
+  `;
+
+  let hedgeChart = null;
+  let chartMode = 'pct';
+
+  const toggleEl = document.getElementById('chartModeToggle');
+  toggleEl.querySelectorAll('button').forEach(btn => {
+    btn.onclick = () => {
+      chartMode = btn.dataset.mode;
+      toggleEl.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+      render();
+    };
+  });
+
+  function render() {
+    const portfolioValue = parseFloat(document.getElementById('portValue').value) || 1000000;
+    const scale = portfolioValue / 1000000;
+    const scenarios = ['A_mild_escalation','B_major_disruption','C_deescalation'];
+    const scenarioLabels = {A_mild_escalation: 'Mild Escalation*', B_major_disruption: 'Major Disruption', C_deescalation: 'De-escalation'};
+    const strategies = ['No hedge','Protective put','Collar','Oil call overlay'];
+
+    const datasets = strategies.map((strat, i) => ({
+      label: strat,
+      data: scenarios.map(sc => {
+        const row = DATA.scenarioResults.find(r => r.scenario === sc && r.strategy === strat);
+        if (!row) return 0;
+        return chartMode === 'usd' ? row.return_pct / 100 * portfolioValue : row.return_pct;
+      }),
+      backgroundColor: COLORS.palette[i % COLORS.palette.length],
+    }));
+
+    if (hedgeChart) hedgeChart.destroy();
+    hedgeChart = new Chart(document.getElementById('hedgeChart'), {
+      type: 'bar',
+      data: { labels: scenarios.map(s => scenarioLabels[s]), datasets },
+      options: chartOpts({
+        title: chartMode === 'usd'
+          ? `Portfolio P&L by strategy and scenario (on ${fmtUSD(portfolioValue)})`
+          : 'Portfolio return by strategy and scenario (% \u2014 same at any portfolio size)',
+        xLabel: 'Scenario',
+        yLabel: chartMode === 'usd' ? 'Portfolio P&L ($)' : 'Portfolio return (%)',
+        legend: true,
+      })
+    });
+
+    let effRows = '<tr><th style="text-align:left;">Strategy</th><th>Cost</th><th>Loss reduction</th><th>Efficiency</th></tr>';
+    DATA.protectionEfficiency.forEach(r => {
+      const eff = r.protection_efficiency;
+      effRows += '<tr><td class="label-cell">' + r.strategy + '</td><td>' + fmtUSD(Math.round(r.cost*scale)) + '</td>' +
+        '<td class="' + (r.loss_reduction_vs_no_hedge >= 0 ? 'up':'down') + '">' + fmtUSD(Math.round(r.loss_reduction_vs_no_hedge*scale)) + '</td>' +
+        '<td>' + (eff === null || eff === undefined ? '&mdash;' : eff.toFixed(2) + 'x') + '</td></tr>';
+    });
+    document.getElementById('effTable').innerHTML = effRows;
+
+    let gRows = '<tr><th style="text-align:left;">Position</th><th>Delta</th><th>Gamma</th><th>Vega</th><th>Theta/day</th></tr>';
+    DATA.hedgeGreeks.forEach(r => {
+      gRows += '<tr><td class="label-cell">' + r.position + '</td><td>' + fmtNum(Math.round(r.delta*scale),0) + '</td>' +
+        '<td>' + fmtNum(r.gamma*scale,2) + '</td><td>' + fmtUSD(Math.round(r.vega*scale)) + '</td>' +
+        '<td>' + fmtUSD(Math.round(r.theta_per_day*scale)) + '</td></tr>';
+    });
+    document.getElementById('greeksTable').innerHTML = gRows;
+  }
+  document.getElementById('portValue').addEventListener('input', render);
+  render();
+}
+
+/* ================= PAGE 5: MODEL RISK ================= */
+function buildModelRisk() {
+  const el = document.getElementById('page-modelrisk');
+  el.innerHTML = `
+    <div class="grid grid-2">
+      <div class="panel">
+        <h2>Delta-hedging through a real jump</h2>
+        <div class="desc">Replicated a short USO call through the real E1 price path (which included a +13% overnight jump, Mar 5&rarr;6) at three rebalancing speeds.</div>
+        <table id="hedgeSimTable"></table>
+        <div class="note real">Real data: actual USO daily closes. Even daily rebalancing can't fully absorb an overnight jump &mdash; that gap is the point of this test.</div>
+      </div>
+      <div class="panel">
+        <div class="chart-wrap"><canvas id="constVolChart"></canvas></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="chart-wrap tall"><canvas id="pricingErrorChart"></canvas></div>
+    </div>
+  `;
+
+  let rows = '<tr><th style="text-align:left;">Rebalancing</th><th>Premium</th><th>Payoff</th><th>Hedging P&amp;L</th></tr>';
+  DATA.deltaHedge.forEach(r => {
+    rows += '<tr><td class="label-cell">' + r.rebalance_frequency + '</td><td>' + fmtUSD(r.premium_received,2) + '</td>' +
+      '<td>' + fmtUSD(r.payoff,2) + '</td><td class="' + (r.hedging_pnl >= 0 ? 'up':'down') + '">' + fmtUSD(r.hedging_pnl,2) + '</td></tr>';
+  });
+  document.getElementById('hedgeSimTable').innerHTML = rows;
+
+  new Chart(document.getElementById('constVolChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Pre-event OVX', 'Post-event OVX', 'Realized (from path)'],
+      datasets: [{
+        label: 'Model price ($)',
+        data: DATA.constVol.map(r => r.call_price),
+        backgroundColor: [COLORS.teal, COLORS.red, COLORS.amber],
+      }]
+    },
+    options: chartOpts({
+      title: 'Same option contract, three volatility inputs',
+      xLabel: 'Volatility input used', yLabel: 'Model price ($)', legend: false,
+    })
+  });
+
+  const events = [...new Set(DATA.pricingError.map(r => r.event_id))];
+  const tickers = [...new Set(DATA.pricingError.map(r => r.ticker))];
+  const datasets = events.map((ev, i) => ({
+    label: ev,
+    data: tickers.map(t => {
+      const row = DATA.pricingError.find(r => r.event_id === ev && r.ticker === t);
+      return row ? row.pricing_error_pp : null;
+    }),
+    backgroundColor: COLORS.palette[i % COLORS.palette.length],
+  }));
+  new Chart(document.getElementById('pricingErrorChart'), {
+    type: 'bar',
+    data: { labels: tickers, datasets },
+    options: chartOpts({
+      title: 'Pricing error by asset and event (actual |move| minus implied move)',
+      xLabel: 'Asset', yLabel: 'Pricing error (percentage points)', legend: true,
+    })
+  });
+}
+
+/* ================= INIT ================= */
+buildOverview();
+buildCalculator();
+buildEvents();
+buildHedging();
+buildModelRisk();
+switchTab('overview');
+</script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+vol_source,sigma,call_price,sigma_pct,pct_diff_vs_pre_event
+Pre-event OVX (available at hedge inception),0.5904999923706055,6.77,59.0,0.0
+Post-event OVX (hindsight),0.9879000091552734,11.14,98.8,64.5
+"Realized vol from the actual path (hindsight, model-free)",0.7066908314314849,8.05,70.7,18.9

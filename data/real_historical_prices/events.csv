@@ -1,0 +1,4 @@
+Event_ID,News_Date,Market_T0,Direction,Event
+E1,2026-02-28,2026-03-02,Escalation,Joint U.S.-Israeli strikes begin the war with Iran
+E2,2026-04-17,2026-04-17,De-escalation,Iran announces that the Strait of Hormuz is open
+E3,2026-06-15,2026-06-15,De-escalation,Initial U.S.-Iran agreement extends the ceasefire and moves toward reopening Hormuz
