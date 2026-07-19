@@ -1,5 +1,5 @@
-# From Hormuz to the Portfolio
-### An Option-Implied Geopolitical Risk Dashboard
+# Impacts of Geopolitical Tensions on Cross-Asset Allocations
+### An Option-Implied Risk Dashboard
 
 A Black-Scholes-based research project measuring how the 2026 Iran&ndash;Israel&ndash;U.S.
 conflict and Strait of Hormuz disruptions moved oil, airline, consumer, healthcare, and
